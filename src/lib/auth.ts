@@ -1,11 +1,11 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
-import { prisma } from "./prisma";
+import { User } from "./models";
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  // Note: PrismaAdapter(prisma) est supprimé. 
+  // NextAuth nécessite un adaptateur Sequelize spécifique ou une implémentation personnalisée.
   session: {
     strategy: "jwt",
   },
@@ -24,11 +24,7 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Identifiants manquants");
         }
 
-        const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email,
-          },
-        });
+        const user = await User.findOne({ where: { email: credentials.email } }) as any;
 
         if (!user || !user.password) {
           throw new Error("Utilisateur non trouvé");

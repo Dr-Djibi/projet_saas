@@ -1,35 +1,28 @@
 import { proto } from "@whiskeysockets/baileys";
-import { AuthenticationCreds, AuthenticationState, SignalDataTypeMap } from "@whiskeysockets/baileys";
+import { AuthenticationCreds, AuthenticationState } from "@whiskeysockets/baileys";
 import { BufferJSON, initAuthCreds } from "@whiskeysockets/baileys";
-import { prisma } from "../prisma";
+import { WhatsappSession } from "../models";
 import { encrypt, decrypt } from "../encryption";
 
-export const getPrismaAuthState = async (botId: string): Promise<AuthenticationState & { saveCreds: () => Promise<void> }> => {
+export const getSequelizeAuthState = async (botId: string): Promise<AuthenticationState & { saveCreds: () => Promise<void> }> => {
   const writeData = async (data: any, type: string) => {
     const encryptedData = encrypt(JSON.stringify(data, BufferJSON.replacer));
     
-    await prisma.whatsappSession.upsert({
-      where: { botId },
-      update: { [type]: encryptedData },
-      create: { 
-        botId,
-        creds: type === "creds" ? encryptedData : "",
-        keys: type === "keys" ? encryptedData : "{}"
-      },
-    });
+    await WhatsappSession.upsert({
+      botId,
+      [type]: encryptedData,
+    } as any);
   };
 
   const readData = async (type: string) => {
     try {
-      const session = await prisma.whatsappSession.findUnique({
-        where: { botId },
-      });
+      const session = await WhatsappSession.findOne({ where: { botId } }) as any;
 
-      if (!session || !session[type as keyof typeof session]) {
+      if (!session || !session[type]) {
         return null;
       }
 
-      const decryptedData = decrypt(session[type as keyof typeof session] as string);
+      const decryptedData = decrypt(session[type]);
       return JSON.parse(decryptedData, BufferJSON.reviver);
     } catch (error) {
       console.error(`Error reading ${type} from DB:`, error);
@@ -70,7 +63,6 @@ export const getPrismaAuthState = async (botId: string): Promise<AuthenticationS
         }
         await writeData(keys, "keys");
       },
-
     },
     saveCreds: () => writeData(creds, "creds"),
   };

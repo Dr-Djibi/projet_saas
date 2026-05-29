@@ -1,15 +1,12 @@
 import makeWASocket, {
-    useMultiFileAuthState,
     fetchLatestBaileysVersion,
-    makeCacheableSignalKeyStore,
     Browsers,
 } from "@whiskeysockets/baileys";
-import { prisma } from "@/lib/prisma";
 import pino from "pino";
-import { getPrismaAuthState } from "@/lib/whatsapp/prisma-auth";
+import { getSequelizeAuthState } from "@/lib/whatsapp/sequelize-auth";
 
 export async function generatePairingCode(botId: string, phoneNumber: string) {
-    const state = await getPrismaAuthState(botId);
+    const state = await getSequelizeAuthState(botId);
     const { saveCreds } = state;
     
     const { version } = await fetchLatestBaileysVersion();

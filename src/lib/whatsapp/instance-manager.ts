@@ -1,12 +1,11 @@
 import makeWASocket, {
   DisconnectReason,
   fetchLatestBaileysVersion,
-  useMultiFileAuthState,
   WASocket,
 } from "@whiskeysockets/baileys";
 import { Boom } from "@hapi/boom";
-import { getPrismaAuthState } from "./prisma-auth";
-import { prisma } from "../prisma";
+import { getSequelizeAuthState } from "./sequelize-auth";
+import { WhatsappBot } from "../models";
 
 class WhatsAppInstanceManager {
   private instances: Map<string, WASocket> = new Map();
@@ -16,7 +15,7 @@ class WhatsAppInstanceManager {
       return this.instances.get(botId);
     }
 
-    const state = await getPrismaAuthState(botId);
+    const state = await getSequelizeAuthState(botId);
     const { saveCreds } = state;
     const { version } = await fetchLatestBaileysVersion();
 
@@ -37,34 +36,18 @@ class WhatsAppInstanceManager {
           (lastDisconnect?.error as Boom)?.output?.statusCode !==
           DisconnectReason.loggedOut;
 
-        console.log(
-          "connection closed due to ",
-          lastDisconnect?.error,
-          ", reconnecting ",
-          shouldReconnect
-        );
-
         if (shouldReconnect) {
           this.initInstance(botId);
         } else {
           this.instances.delete(botId);
-          await prisma.whatsappBot.update({
-            where: { id: botId },
-            data: { isActive: false },
-          });
+          await WhatsappBot.update({ isActive: false }, { where: { id: botId } });
         }
       } else if (connection === "open") {
-        console.log("opened connection");
         this.instances.set(botId, sock);
-        await prisma.whatsappBot.update({
-          where: { id: botId },
-          data: { isActive: true },
-        });
+        await WhatsappBot.update({ isActive: true }, { where: { id: botId } });
       }
 
-      // Handle QR code event (can be sent via websocket or stored for polling)
       if (qr) {
-        // Emit QR to frontend (to be implemented via Socket.io or similar)
         console.log(`New QR for ${botId}: ${qr}`);
       }
     });
@@ -83,21 +66,14 @@ class WhatsAppInstanceManager {
   }
 
   private async handleIncomingMessage(botId: string, sock: WASocket, msg: any) {
-    const bot = await prisma.whatsappBot.findUnique({
-      where: { id: botId },
-    });
-
+    const bot = await WhatsappBot.findByPk(botId) as any;
     if (!bot) return;
 
     const jid = msg.key.remoteJid;
     const text = msg.message.conversation || msg.message.extendedTextMessage?.text;
 
-    // Basic logic: welcome message for first interaction or simple command
-    // This can be expanded based on user's bot requirements
     if (text?.toLowerCase() === "hi" || text?.toLowerCase() === "bonjour") {
       await sock.sendMessage(jid, { text: bot.welcomeMessage || "Bonjour !" });
-    } else {
-      // await sock.sendMessage(jid, { text: bot.fallbackMessage || "Désolé, je ne comprends pas." });
     }
   }
 
