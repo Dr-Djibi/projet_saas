@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Menma VPS",
+  title: "Menma",
   description: "Manage your VPS with ease",
 };
 

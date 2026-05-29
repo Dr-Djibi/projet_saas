@@ -23,7 +23,7 @@ class WhatsAppInstanceManager {
       version,
       printQRInTerminal: false,
       auth: state,
-      browser: ["Menma VPS", "Chrome", "1.0.0"],
+      browser: ["Menma", "Chrome", "1.0.0"],
     });
 
     sock.ev.on("creds.update", saveCreds);

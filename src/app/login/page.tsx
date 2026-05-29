@@ -57,10 +57,10 @@ export default function LoginPage() {
           </Link>
           <div className="space-y-1">
             <h1 className="text-4xl font-black tracking-tight text-foreground leading-tight">Bon retour !</h1>
-            <p className="text-foreground/60 font-medium">Connectez-vous à votre espace Menma VPS</p>
+            <p className="text-foreground/60 font-medium">Connectez-vous à votre espace Menma</p>
           </div>
         </div>
-        
+
         <Card className="border-2 border-primary/10 shadow-none rounded-[2.5rem] p-4 bg-white/50 backdrop-blur-sm">
           <CardHeader className="pt-8 pb-4 text-center">
             <CardTitle className="text-2xl font-black">Connexion</CardTitle>
