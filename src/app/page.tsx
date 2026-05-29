@@ -1,137 +1,135 @@
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { PlusCircle, Server, Activity, Shield } from "lucide-react";
+import { ArrowRight, Bot, Zap, Shield, Rocket } from "lucide-react";
+import Link from "next/link";
 
-export default function Home() {
-  const vpsList = [
-    {
-      name: "Main Web Server",
-      ip: "192.168.1.10",
-      status: "Running",
-      cpu: "12%",
-      ram: "2.4GB / 8GB",
-    },
-    {
-      name: "Database Node",
-      ip: "192.168.1.11",
-      status: "Running",
-      cpu: "45%",
-      ram: "4.1GB / 16GB",
-    },
-    {
-      name: "Backup Storage",
-      ip: "192.168.1.12",
-      status: "Stopped",
-      cpu: "0%",
-      ram: "0.5GB / 4GB",
-    },
-  ];
-
+export default function LandingPage() {
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6">
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-        <div className="flex items-center space-x-2">
-          <Button>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add Server
-          </Button>
+    <div className="flex flex-col min-h-screen bg-background">
+      {/* Navigation - Floating Navbar Rule */}
+      <header className="fixed top-4 left-4 right-4 h-16 flex items-center px-6 bg-white/80 backdrop-blur-md border-2 border-primary/20 rounded-2xl z-50 shadow-none">
+        <Link className="flex items-center justify-center gap-2 group cursor-pointer" href="/">
+          <div className="p-1.5 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
+            <Bot className="h-6 w-6 text-primary" />
+          </div>
+          <span className="text-xl font-bold tracking-tight text-foreground">Menma</span>
+        </Link>
+        <nav className="ml-auto flex items-center gap-4 sm:gap-8">
+          <Link className="hidden md:block text-sm font-semibold text-foreground/70 hover:text-primary transition-colors cursor-pointer" href="#features">
+            Fonctionnalités
+          </Link>
+          <Link className="hidden md:block text-sm font-semibold text-foreground/70 hover:text-primary transition-colors cursor-pointer" href="#pricing">
+            Tarifs
+          </Link>
+          <Link href="/login" className="cursor-pointer">
+            <Button variant="ghost" className="text-sm font-bold hover:bg-primary/5 transition-all">Connexion</Button>
+          </Link>
+          <Link href="/signup" className="cursor-pointer">
+            <Button className="text-sm font-bold bg-primary hover:bg-primary/90 text-white border-b-4 border-primary-foreground/20 active:border-b-0 active:translate-y-[2px] transition-all">S&apos;inscrire</Button>
+          </Link>
+        </nav>
+      </header>
+
+      <main className="flex-1 pt-24">
+        {/* Hero Section */}
+        <section className="w-full py-20 lg:py-32 flex flex-col items-center text-center px-6">
+          <div className="space-y-8 max-w-4xl">
+            <div className="inline-flex items-center rounded-full border-2 border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-bold text-primary mb-4">
+              <span className="flex h-2 w-2 rounded-full bg-primary mr-2 animate-pulse"></span>
+              Maintenant en Beta Publique
+            </div>
+            <h1 className="text-5xl font-black tracking-tighter sm:text-6xl md:text-7xl lg:text-8xl text-foreground leading-[1.1]">
+              Déployez votre Bot WhatsApp <span className="text-primary underline decoration-accent decoration-8 underline-offset-8">en un clic.</span>
+            </h1>
+            <p className="mx-auto max-w-[700px] text-foreground/70 md:text-xl font-medium leading-relaxed">
+              La plateforme ultime pour héberger Menma-MD. Multi-session, ultra-rapide et sécurisée. Gérez vos automatisations comme jamais auparavant.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center pt-8">
+              <Link href="/signup" className="cursor-pointer">
+                <Button size="lg" className="h-14 px-10 text-lg font-black gap-2 bg-accent hover:bg-accent/90 text-white border-b-4 border-black/20 active:border-b-0 active:translate-y-[2px] transition-all">
+                  Démarrer Gratuitement <ArrowRight className="h-5 w-5" />
+                </Button>
+              </Link>
+              <Link href="/docs" className="cursor-pointer">
+                <Button variant="outline" size="lg" className="h-14 px-10 text-lg font-black border-2 border-primary text-primary hover:bg-primary/5 transition-all">
+                  Documentation
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section id="features" className="w-full py-24 bg-primary/5">
+          <div className="container px-6 mx-auto">
+            <div className="grid gap-8 lg:grid-cols-3">
+              <div className="group flex flex-col items-center text-center space-y-6 p-8 rounded-3xl bg-white border-2 border-primary/10 hover:border-primary/30 transition-all cursor-pointer shadow-none">
+                <div className="p-4 rounded-2xl bg-primary/10 group-hover:bg-primary group-hover:text-white transition-all">
+                  <Zap className="h-10 w-10 text-primary group-hover:text-white" />
+                </div>
+                <h3 className="text-2xl font-black">Déploiement Instantané</h3>
+                <p className="text-foreground/60 font-medium">
+                  Connectez votre GitHub et déployez votre bot en moins de 60 secondes sur nos serveurs haute performance.
+                </p>
+              </div>
+              <div className="group flex flex-col items-center text-center space-y-6 p-8 rounded-3xl bg-white border-2 border-primary/10 hover:border-primary/30 transition-all cursor-pointer shadow-none">
+                <div className="p-4 rounded-2xl bg-primary/10 group-hover:bg-primary group-hover:text-white transition-all">
+                  <Shield className="h-10 w-10 text-primary group-hover:text-white" />
+                </div>
+                <h3 className="text-2xl font-black">Multi-Session Sécurisé</h3>
+                <p className="text-foreground/60 font-medium">
+                  Gérez plusieurs comptes WhatsApp simultanément avec un chiffrement AES-256 de bout en bout pour vos sessions.
+                </p>
+              </div>
+              <div className="group flex flex-col items-center text-center space-y-6 p-8 rounded-3xl bg-white border-2 border-primary/10 hover:border-primary/30 transition-all cursor-pointer shadow-none">
+                <div className="p-4 rounded-2xl bg-primary/10 group-hover:bg-primary group-hover:text-white transition-all">
+                  <Rocket className="h-10 w-10 text-primary group-hover:text-white" />
+                </div>
+                <h3 className="text-2xl font-black">Évolutivité Totale</h3>
+                <p className="text-foreground/60 font-medium">
+                  De 1 à 100 bots, notre infrastructure s&apos;adapte à vos besoins sans interruption de service.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Pricing/CTA Section */}
+        <section className="w-full py-32">
+          <div className="container px-6 mx-auto text-center space-y-12">
+            <h2 className="text-4xl font-black tracking-tighter sm:text-6xl">
+              Prêt à automatiser vos interactions ?
+            </h2>
+            <p className="mx-auto max-w-[600px] text-foreground/60 text-xl font-medium">
+              Rejoignez des centaines d&apos;utilisateurs qui font confiance à Menma pour leur infrastructure d&apos;automatisation.
+            </p>
+            <Button size="lg" className="h-16 px-16 text-xl font-black bg-primary hover:bg-primary/90 text-white border-b-4 border-black/20 active:border-b-0 active:translate-y-[2px] transition-all cursor-pointer">
+              Créer mon compte maintenant
+            </Button>
+          </div>
+        </section>
+      </main>
+
+      <footer className="py-20 bg-foreground text-white px-6">
+        <div className="container mx-auto flex flex-col md:flex-row justify-between items-center gap-10">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-white/10">
+              <Bot className="h-8 w-8 text-primary" />
+            </div>
+            <span className="text-2xl font-black">Menma</span>
+          </div>
+          <p className="text-lg font-medium text-white/60">
+            © 2026 Menma. Tous droits réservés.
+          </p>
+          <div className="flex gap-10">
+            <Link className="text-lg font-bold hover:text-primary transition-colors cursor-pointer" href="#">
+              CGU
+            </Link>
+            <Link className="text-lg font-bold hover:text-primary transition-colors cursor-pointer" href="#">
+              Confidentialité
+            </Link>
+          </div>
         </div>
-      </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Servers</CardTitle>
-            <Server className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">3</div>
-            <p className="text-xs text-muted-foreground">
-              +1 from last month
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Sessions</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">
-              +4 since last hour
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Security Alerts</CardTitle>
-            <Shield className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">
-              System is secure
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-      <Card className="col-span-4">
-        <CardHeader>
-          <CardTitle>Servers</CardTitle>
-          <CardDescription>
-            You have {vpsList.length} servers configured.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>IP Address</TableHead>
-                <TableHead>CPU Usage</TableHead>
-                <TableHead className="text-right">RAM</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {vpsList.map((vps) => (
-                <TableRow key={vps.name}>
-                  <TableCell className="font-medium">{vps.name}</TableCell>
-                  <TableCell>
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                        vps.status === "Running"
-                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                          : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                      }`}
-                    >
-                      {vps.status}
-                    </span>
-                  </TableCell>
-                  <TableCell>{vps.ip}</TableCell>
-                  <TableCell>{vps.cpu}</TableCell>
-                  <TableCell className="text-right">{vps.ram}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      </footer>
     </div>
   );
 }
