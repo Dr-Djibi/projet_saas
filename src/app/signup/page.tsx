@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bot } from "lucide-react";
+import { siteConfig } from "@/config/site";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -50,7 +51,7 @@ export default function SignupPage() {
           </Link>
           <div className="space-y-1">
             <h1 className="text-4xl font-black tracking-tight text-foreground leading-tight">Bienvenue !</h1>
-            <p className="text-foreground/60 font-medium">Rejoignez Menma VPS aujourd&apos;hui</p>
+            <p className="text-foreground/60 font-medium">Rejoignez {siteConfig.name} aujourd&apos;hui</p>
           </div>
         </div>
         

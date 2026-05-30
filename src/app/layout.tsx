@@ -15,9 +15,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+import { siteConfig } from "@/config/site";
+
 export const metadata: Metadata = {
-  title: "Menma",
-  description: "Manage your VPS with ease",
+  title: siteConfig.name,
+  description: siteConfig.description,
 };
 
 export default function RootLayout({

@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Bot, LayoutDashboard, Settings, CreditCard, LogOut } from "lucide-react";
 import Link from "next/link";
+import { siteConfig } from "@/config/site";
 
 const items = [
   {
@@ -42,7 +43,7 @@ export function AppSidebar() {
           <div className="p-2 rounded-xl bg-primary/10 group-hover:bg-primary transition-all">
             <Bot className="h-6 w-6 text-primary group-hover:text-white" />
           </div>
-          <span className="text-xl font-black tracking-tight text-foreground">Menma</span>
+          <span className="text-xl font-black tracking-tight text-foreground">{siteConfig.name}</span>
         </Link>
       </SidebarHeader>
       <SidebarContent className="p-2">

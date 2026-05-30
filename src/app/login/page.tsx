@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bot } from "lucide-react";
+import { siteConfig } from "@/config/site";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -57,7 +58,7 @@ export default function LoginPage() {
           </Link>
           <div className="space-y-1">
             <h1 className="text-4xl font-black tracking-tight text-foreground leading-tight">Bon retour !</h1>
-            <p className="text-foreground/60 font-medium">Connectez-vous à votre espace Menma</p>
+            <p className="text-foreground/60 font-medium">Connectez-vous à votre espace {siteConfig.name}</p>
           </div>
         </div>
 
