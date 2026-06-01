@@ -1,5 +1,5 @@
 import { DataTypes, Model, Sequelize } from 'sequelize';
-import sequelize from './sequelize.js';
+import sequelize from './sequelize';
 
 export class User extends Model {
   public id!: string;
@@ -23,7 +23,7 @@ User.init({
   verificationExpires: { type: DataTypes.DATE, allowNull: true }
 }, { sequelize, modelName: 'User' });
 
-export class BotInstance extends Model {
+export class WhatsappBot extends Model {
   public id!: string;
   public userId!: string;
   public pm2ProcessName!: string;
@@ -32,11 +32,12 @@ export class BotInstance extends Model {
   public prefix!: string;
   public ownerNumber!: string | null;
   public status!: 'active' | 'paused' | 'expired';
+  public isActive!: boolean;
   public remainingHours!: number;
   public lastCalculated!: Date | null;
 }
 
-BotInstance.init({
+WhatsappBot.init({
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
   userId: { type: DataTypes.UUID, allowNull: false, unique: true },
   pm2ProcessName: { type: DataTypes.STRING, allowNull: false, unique: true },
@@ -45,9 +46,24 @@ BotInstance.init({
   prefix: { type: DataTypes.STRING, defaultValue: '.' },
   ownerNumber: { type: DataTypes.STRING, allowNull: true },
   status: { type: DataTypes.ENUM('active', 'paused', 'expired'), defaultValue: 'paused' },
+  isActive: { type: DataTypes.BOOLEAN, defaultValue: false },
   remainingHours: { type: DataTypes.FLOAT, defaultValue: 72.00 },
   lastCalculated: { type: DataTypes.DATE, allowNull: true }
-}, { sequelize, modelName: 'BotInstance' });
+}, { sequelize, modelName: 'WhatsappBot' });
+
+export class WhatsappSession extends Model {
+  public id!: string;
+  public botId!: string;
+  public creds!: string | null;
+  public keys!: string | null;
+}
+
+WhatsappSession.init({
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  botId: { type: DataTypes.UUID, allowNull: false, unique: true },
+  creds: { type: DataTypes.TEXT, allowNull: true },
+  keys: { type: DataTypes.TEXT, allowNull: true }
+}, { sequelize, modelName: 'WhatsappSession' });
 
 export class SubscriptionTicket extends Model {
   public id!: string;
@@ -68,10 +84,13 @@ SubscriptionTicket.init({
 }, { sequelize, modelName: 'SubscriptionTicket' });
 
 // Relations
-User.hasOne(BotInstance, { foreignKey: 'userId' });
-BotInstance.belongsTo(User, { foreignKey: 'userId' });
+User.hasOne(WhatsappBot, { foreignKey: 'userId' });
+WhatsappBot.belongsTo(User, { foreignKey: 'userId' });
 
 User.hasMany(SubscriptionTicket, { foreignKey: 'userId' });
 SubscriptionTicket.belongsTo(User, { foreignKey: 'userId' });
+
+WhatsappBot.hasOne(WhatsappSession, { foreignKey: 'botId' });
+WhatsappSession.belongsTo(WhatsappBot, { foreignKey: 'botId' });
 
 export { sequelize };

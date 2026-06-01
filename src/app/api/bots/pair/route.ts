@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { generatePairingCode } from "@/lib/whatsapp/pairing";
-import { prisma } from "@/lib/prisma";
+import { WhatsappBot } from "@/lib/models";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   const { phoneNumber } = await req.json();
   const userId = (session.user as any).id;
 
-  const bot = await prisma.whatsappBot.findUnique({ where: { userId } });
+  const bot = await WhatsappBot.findOne({ where: { userId } }) as any;
   if (!bot) return NextResponse.json({ error: "Bot non trouvé" }, { status: 404 });
 
   try {

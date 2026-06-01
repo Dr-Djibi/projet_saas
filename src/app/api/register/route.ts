@@ -1,34 +1,40 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { User } from "@/lib/models"; // Importation des modèles Sequelize
+import { User } from "@/lib/models";
 import { sendVerificationEmail } from "@/lib/email";
 import crypto from "crypto";
 
 export async function POST(req: Request) {
   try {
-    const { email, password, name } = await req.json();
+    const { email, password, username } = await req.json();
 
-    // Vérifier si l'utilisateur existe avec Sequelize
+    // 1. Vérifier existence
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) return NextResponse.json({ message: "Utilisateur déjà existant" }, { status: 400 });
 
+    // 2. Hashage
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Création via Sequelize
-    const user = await User.create({
+    // 3. Génération code vérification
+    const verificationCode = crypto.randomInt(100000, 999999).toString();
+    const verificationExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 min
+
+    // 4. Création avec Sequelize
+    await User.create({
+      username,
       email,
       password: hashedPassword,
-      name,
-    } as any);
+      verificationCode,
+      verificationExpires,
+      isVerified: false
+    });
 
-    // Note : La gestion du token de vérification et de l'abonnement 
-    // nécessitera la création des modèles Sequelize correspondants (VerificationToken, Subscription) 
-    // si vous voulez conserver cette fonctionnalité exacte.
+    // 5. Envoi email
+    await sendVerificationEmail(email, verificationCode);
     
-    // Pour l'instant, on se concentre sur l'inscription fonctionnelle :
-    return NextResponse.json({ message: "Inscription réussie" }, { status: 201 });
+    return NextResponse.json({ message: "Inscription réussie, vérifiez votre email" }, { status: 201 });
   } catch (error) {
     console.error("Reg error:", error);
-    return NextResponse.json({ message: "Erreur serveur : " + (error as Error).message }, { status: 500 });
+    return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
   }
 }

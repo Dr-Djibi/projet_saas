@@ -1,6 +1,4 @@
-require('ts-node/register');
-const { sequelize } = require('../src/lib/models');
-require('../src/lib/models');
+import { sequelize } from "../src/lib/models";
 
 async function syncDb() {
   try {

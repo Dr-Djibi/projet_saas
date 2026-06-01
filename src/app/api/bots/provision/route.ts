@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { WhatsappBot } from "@/lib/models";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     const userId = (session.user as any).id;
 
     // Check if user already has a bot
-    const existingBot = await prisma.whatsappBot.findUnique({
+    const existingBot = await WhatsappBot.findOne({
       where: { userId },
     });
 
@@ -25,14 +25,14 @@ export async function POST(req: Request) {
       );
     }
 
-    const { phoneNumber } = await req.json();
+    // Generate a unique process name
+    const pm2ProcessName = `bot-${userId.slice(0, 8)}-${Date.now()}`;
 
-    const bot = await prisma.whatsappBot.create({
-      data: {
-        userId,
-        phoneNumber,
-        isActive: false,
-      },
+    const bot = await WhatsappBot.create({
+      userId,
+      pm2ProcessName,
+      isActive: false,
+      status: 'paused',
     });
 
     return NextResponse.json({ bot }, { status: 201 });

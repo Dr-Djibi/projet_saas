@@ -3,7 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { prisma } from "@/lib/prisma";
+import { WhatsappBot } from "@/lib/models";
 import { Bot, Power, RefreshCw, Settings, Activity, Signal } from "lucide-react";
 
 export default async function DashboardPage() {
@@ -14,9 +14,9 @@ export default async function DashboardPage() {
   }
 
   const userId = (session.user as any).id;
-  const bot = await prisma.whatsappBot.findUnique({
+  const bot = await WhatsappBot.findOne({
     where: { userId },
-  });
+  }) as any;
 
   return (
     <div className="space-y-10">

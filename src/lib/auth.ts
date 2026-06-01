@@ -26,8 +26,14 @@ export const authOptions: NextAuthOptions = {
 
         const user = await User.findOne({ where: { email: credentials.email } }) as any;
 
-        if (!user || !user.password) {
-          throw new Error("Utilisateur non trouvé");
+        if (!user) {
+          console.log("Login failed: User not found", credentials.email);
+          throw new Error("Email ou mot de passe incorrect");
+        }
+
+        if (!user.isVerified) {
+          console.log("Login failed: User not verified", credentials.email);
+          throw new Error("Veuillez vérifier votre email avant de vous connecter");
         }
 
         const isPasswordCorrect = await bcrypt.compare(
@@ -36,13 +42,15 @@ export const authOptions: NextAuthOptions = {
         );
 
         if (!isPasswordCorrect) {
-          throw new Error("Mot de passe incorrect");
+          console.log("Login failed: Incorrect password", credentials.email);
+          throw new Error("Email ou mot de passe incorrect");
         }
 
+        console.log("Login success:", credentials.email);
         return {
           id: user.id,
           email: user.email,
-          name: user.name,
+          name: user.username,
           role: user.role,
         };
       },

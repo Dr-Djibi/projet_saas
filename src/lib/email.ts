@@ -11,14 +11,19 @@ export const sendVerificationEmail = async (email: string, token: string) => {
     },
   });
 
-  const url = `${process.env.APP_URL}/verify-email?token=${token}`;
-
   await transporter.sendMail({
     from: `"${process.env.APP_NAME}" <${process.env.SMTP_FROM}>`,
     to: email,
-    subject: `Vérification de votre compte ${process.env.APP_NAME}`,
-    html: `<h1>Bienvenue sur ${process.env.APP_NAME}</h1>
-           <p>Cliquez sur le lien ci-dessous pour valider votre compte :</p>
-           <a href="${url}">${url}</a>`,
+    subject: `Votre code de vérification - ${process.env.APP_NAME}`,
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+        <h1>Vérification de votre compte</h1>
+        <p>Merci de vous être inscrit. Utilisez le code ci-dessous pour vérifier votre adresse email :</p>
+        <div style="background-color: #f4f4f4; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 5px;">
+          ${token}
+        </div>
+        <p>Ce code expirera dans 15 minutes.</p>
+      </div>
+    `,
   });
 };

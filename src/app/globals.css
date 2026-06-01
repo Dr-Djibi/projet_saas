@@ -49,46 +49,37 @@
 }
 
 :root {
-  /* Premium Deep Dark SaaS Theme (OLED Friendly) */
-  --background: oklch(0.03 0.01 280);
-  --foreground: oklch(0.99 0.003 280);
-  --card: oklch(0.06 0.02 280);
-  --card-foreground: oklch(0.99 0.003 280);
-  --popover: oklch(0.06 0.02 280);
-  --popover-foreground: oklch(0.99 0.003 280);
-  --primary: oklch(0.60 0.20 280);
-  /* Balanced Electric Blue */
-  --primary-foreground: oklch(70.137% 0.14051 90.592);
-  --secondary: oklch(0.12 0.03 280);
-  --secondary-foreground: oklch(0.99 0.003 280);
-  --muted: oklch(0.1 0.02 280);
-  --muted-foreground: oklch(0.75 0.01 280);
-  --accent: oklch(0.75 0.20 200);
-  /* Teal/Cyan accent */
-  --accent-foreground: oklch(0.03 0 0);
-  --destructive: oklch(0.55 0.20 25);
-  --border: oklch(0.15 0.01 280);
-  --input: oklch(0.15 0.01 280);
-  --ring: oklch(0.60 0.20 280);
-  --radius: 0.85rem;
+  /* High-Contrast Light Theme: Black Text on White/Light Background */
+  --background: #FFFFFF;
+  --foreground: #000000; /* Black Text */
+  
+  --card: #F9F9F9;
+  --card-foreground: #000000;
+  
+  --popover: #FFFFFF;
+  --popover-foreground: #000000;
+  
+  --primary: #D4AF37; /* Keep Gold accent */
+  --primary-foreground: #000000;
+  
+  --secondary: #F3F3F3;
+  --secondary-foreground: #000000;
+  
+  --muted: #E5E5E5;
+  --muted-foreground: #525252; /* Dark Gray for muted */
+  
+  --accent: #E5E5E5;
+  --accent-foreground: #000000;
+  
+  --destructive: #B91C1C;
+  --border: #D4D4D4;
+  --input: #D4D4D4;
+  --ring: #D4AF37;
+  --radius: 0.75rem;
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-
   body {
-    @apply bg-background text-foreground selection:bg-primary selection:text-white;
+    @apply bg-background text-foreground;
   }
-}
-
-.particles-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -1;
-  background: radial-gradient(circle at center, oklch(0.15 0.1 280) 0%, oklch(0.04 0.01 280) 70%);
 }
