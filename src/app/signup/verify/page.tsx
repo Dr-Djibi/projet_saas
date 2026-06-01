@@ -107,7 +107,7 @@ function VerifyForm() {
           </div>
         )}
 
-        <Button className="w-full h-14 text-lg font-black bg-primary text-black hover:bg-primary/90 border-b-4 border-black/20 active:border-b-0 active:translate-y-[2px] transition-all" disabled={loading}>
+        <Button className="w-full h-14 text-lg font-black bg-primary hover:bg-primary/90 text-white border-b-4 border-black/20 active:border-b-0 active:translate-y-[2px] transition-all cursor-pointer" disabled={loading}>
           {loading ? "Vérification..." : "Confirmer mon compte"}
         </Button>
       </form>

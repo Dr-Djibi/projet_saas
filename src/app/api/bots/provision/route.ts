@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { WhatsappBot } from "@/lib/models";
+import { SystemSettingsService } from "@/services/settings/system-settings";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
@@ -25,14 +26,17 @@ export async function POST(req: Request) {
       );
     }
 
-    // Generate a unique process name
-    const pm2ProcessName = `bot-${userId.slice(0, 8)}-${Date.now()}`;
+    // Generate a dynamic PM2 process name
+    const pm2Prefix = await SystemSettingsService.getPm2Prefix();
+    const pm2ProcessName = `${pm2Prefix}${userId.slice(0, 8)}-${Date.now()}`;
+    const defaultHours = await SystemSettingsService.getDefaultRemainingHours();
 
     const bot = await WhatsappBot.create({
       userId,
       pm2ProcessName,
       isActive: false,
       status: 'paused',
+      remainingHours: defaultHours,
     });
 
     return NextResponse.json({ bot }, { status: 201 });

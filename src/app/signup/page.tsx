@@ -80,6 +80,7 @@ export default function SignupPage() {
                 placeholder="Votre nom"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                className="h-14 px-6 rounded-2xl border-2 border-primary/10 bg-white focus:border-primary focus:ring-0 transition-all font-bold"
                 required
               />
               <Input
@@ -87,6 +88,7 @@ export default function SignupPage() {
                 placeholder="votre@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="h-14 px-6 rounded-2xl border-2 border-primary/10 bg-white focus:border-primary focus:ring-0 transition-all font-bold"
                 required
               />
               <div className="relative">
@@ -95,12 +97,12 @@ export default function SignupPage() {
                   placeholder="Mot de passe"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pr-12"
+                  className="h-14 pl-6 pr-12 rounded-2xl border-2 border-primary/10 bg-white focus:border-primary focus:ring-0 transition-all font-bold w-full"
                   required
                 />
                 <button
                   type="button"
-                  className="absolute right-4 top-4 text-gray-500 hover:text-primary transition-colors"
+                  className="absolute right-5 top-[18px] text-gray-500 hover:text-primary transition-colors cursor-pointer"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -111,15 +113,16 @@ export default function SignupPage() {
                 placeholder="Confirmer mot de passe"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                className="h-14 px-6 rounded-2xl border-2 border-primary/10 bg-white focus:border-primary focus:ring-0 transition-all font-bold"
                 required
               />
               
               {error && (
-                <div className="p-3 rounded-xl bg-destructive/10 border-2 border-destructive/20 text-destructive text-sm font-bold text-center">
+                <div className="p-4 rounded-xl bg-destructive/10 border-2 border-destructive/20 text-destructive text-sm font-bold text-center">
                   {error}
                 </div>
               )}
-              <Button type="submit" className="w-full h-14 text-lg font-black bg-primary text-black hover:bg-primary/90" disabled={loading}>
+              <Button type="submit" className="w-full h-14 text-lg font-black bg-primary hover:bg-primary/90 text-white border-b-4 border-black/20 active:border-b-0 active:translate-y-[2px] transition-all cursor-pointer" disabled={loading}>
                 {loading ? "Création..." : "S'inscrire"}
               </Button>
             </form>

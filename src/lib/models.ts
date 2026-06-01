@@ -47,7 +47,7 @@ WhatsappBot.init({
   ownerNumber: { type: DataTypes.STRING, allowNull: true },
   status: { type: DataTypes.ENUM('active', 'paused', 'expired'), defaultValue: 'paused' },
   isActive: { type: DataTypes.BOOLEAN, defaultValue: false },
-  remainingHours: { type: DataTypes.FLOAT, defaultValue: 72.00 },
+  remainingHours: { type: DataTypes.DOUBLE, defaultValue: 72.00 },
   lastCalculated: { type: DataTypes.DATE, allowNull: true }
 }, { sequelize, modelName: 'WhatsappBot' });
 
@@ -70,6 +70,7 @@ export class SubscriptionTicket extends Model {
   public code!: string;
   public hoursAmount!: number;
   public userId!: string;
+  public transactionId!: string | null;
   public isUsed!: boolean;
   public usedAt!: Date | null;
 }
@@ -79,9 +80,44 @@ SubscriptionTicket.init({
   code: { type: DataTypes.STRING, allowNull: false, unique: true },
   hoursAmount: { type: DataTypes.INTEGER, allowNull: false },
   userId: { type: DataTypes.UUID, allowNull: false },
+  transactionId: { type: DataTypes.UUID, allowNull: true },
   isUsed: { type: DataTypes.BOOLEAN, defaultValue: false },
   usedAt: { type: DataTypes.DATE, allowNull: true }
 }, { sequelize, modelName: 'SubscriptionTicket' });
+
+export class PaymentTransaction extends Model {
+  public id!: string;
+  public userId!: string;
+  public amount!: number;
+  public currency!: string;
+  public status!: 'pending' | 'success' | 'failed';
+  public type!: 'ticket' | 'direct';
+  public metadata!: any;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+}
+
+PaymentTransaction.init({
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  userId: { type: DataTypes.UUID, allowNull: false },
+  amount: { type: DataTypes.DOUBLE, allowNull: false },
+  currency: { type: DataTypes.STRING, allowNull: false },
+  status: { type: DataTypes.ENUM('pending', 'success', 'failed'), defaultValue: 'pending' },
+  type: { type: DataTypes.ENUM('ticket', 'direct'), allowNull: false },
+  metadata: { type: DataTypes.JSONB, allowNull: true }
+}, { sequelize, modelName: 'PaymentTransaction' });
+
+export class SystemSetting extends Model {
+  public key!: string;
+  public value!: string;
+  public description!: string | null;
+}
+
+SystemSetting.init({
+  key: { type: DataTypes.STRING, primaryKey: true },
+  value: { type: DataTypes.TEXT, allowNull: false },
+  description: { type: DataTypes.STRING, allowNull: true }
+}, { sequelize, modelName: 'SystemSetting' });
 
 // Relations
 User.hasOne(WhatsappBot, { foreignKey: 'userId' });
@@ -89,6 +125,12 @@ WhatsappBot.belongsTo(User, { foreignKey: 'userId' });
 
 User.hasMany(SubscriptionTicket, { foreignKey: 'userId' });
 SubscriptionTicket.belongsTo(User, { foreignKey: 'userId' });
+
+User.hasMany(PaymentTransaction, { foreignKey: 'userId' });
+PaymentTransaction.belongsTo(User, { foreignKey: 'userId' });
+
+PaymentTransaction.hasOne(SubscriptionTicket, { foreignKey: 'transactionId' });
+SubscriptionTicket.belongsTo(PaymentTransaction, { foreignKey: 'transactionId' });
 
 WhatsappBot.hasOne(WhatsappSession, { foreignKey: 'botId' });
 WhatsappSession.belongsTo(WhatsappBot, { foreignKey: 'botId' });
