@@ -2,12 +2,10 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Bot, Zap, Shield, Rocket } from "lucide-react";
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
-import { ParticlesBackground } from "@/components/particles-background";
 
 export default function LandingPage() {
   return (
     <div className="relative flex flex-col min-h-screen bg-background text-foreground">
-      <ParticlesBackground />
       
       {/* Navigation */}
       <header className="sticky top-0 z-50 w-full bg-black/50 backdrop-blur-md border-b border-border">

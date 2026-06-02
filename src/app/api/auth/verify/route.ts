@@ -20,11 +20,13 @@ export async function POST(req: Request) {
     }
 
     // 2. Valider l'utilisateur
+    console.log('Verifying user:', user.email, 'Current isVerified:', user.isVerified);
     await user.update({
       isVerified: true,
       verificationCode: null,
       verificationExpires: null
     });
+    console.log('User verified successfully');
 
     return NextResponse.json({ message: "Compte vérifié avec succès" }, { status: 200 });
   } catch (error) {

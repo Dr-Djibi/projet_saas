@@ -11,7 +11,9 @@ export class SystemSettingsService {
   private static fallbacks: Record<string, string> = {
     APP_NAME: process.env.NEXT_PUBLIC_APP_NAME || 'OVL & MENMA',
     APP_DESCRIPTION: process.env.NEXT_PUBLIC_APP_DESCRIPTION || 'Hébergement de bots WhatsApp',
-    BOT_REPO_URL: process.env.BOT_REPO_URL || 'https://github.com/Dr-Djibi/menma-bot.git',
+    MENMA_BOT_REPO_URL: process.env.MENMA_BOT_REPO_URL || 'https://github.com/Dr-Djibi/menma-bot.git',
+    OVL_BOT_REPO_URL: process.env.OVL_BOT_REPO_URL || 'https://github.com/Dr-Djibi/ovl-md.git',
+    SESSION_REPO_URL: process.env.SESSION_REPO_URL || 'https://github.com/menma-md/session-web.git',
     SESSION_SITE_URL: process.env.SESSION_SITE_URL || 'http://localhost:3000',
     SAAS_WEBHOOK_SECRET: process.env.SAAS_WEBHOOK_SECRET || 'secret-partage-session',
     PM2_PROCESS_PREFIX: process.env.PM2_PROCESS_PREFIX || 'bot-user-',
@@ -72,8 +74,16 @@ export class SystemSettingsService {
     return this.getSetting('APP_NAME');
   }
 
-  static async getBotRepoUrl(): Promise<string> {
-    return this.getSetting('BOT_REPO_URL');
+  static async getMenmaRepoUrl(): Promise<string> {
+    return this.getSetting('MENMA_BOT_REPO_URL');
+  }
+
+  static async getOvlRepoUrl(): Promise<string> {
+    return this.getSetting('OVL_BOT_REPO_URL');
+  }
+
+  static async getSessionRepoUrl(): Promise<string> {
+    return this.getSetting('SESSION_REPO_URL');
   }
 
   static async getSessionSiteUrl(): Promise<string> {

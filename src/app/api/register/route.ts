@@ -20,7 +20,8 @@ export async function POST(req: Request) {
     const verificationExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 min
 
     // 4. Création avec Sequelize
-    await User.create({
+    console.log('Attempting to create user:', { username, email });
+    const newUser = await User.create({
       username,
       email,
       password: hashedPassword,
@@ -28,6 +29,7 @@ export async function POST(req: Request) {
       verificationExpires,
       isVerified: false
     });
+    console.log('User created successfully:', newUser.id);
 
     // 5. Envoi email
     await sendVerificationEmail(email, verificationCode);

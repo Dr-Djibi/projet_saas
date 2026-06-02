@@ -1,15 +1,17 @@
-import { DataTypes, Model, Sequelize } from 'sequelize';
+import { DataTypes, Model, Sequelize, InferAttributes, InferCreationAttributes, CreationOptional } from 'sequelize';
 import sequelize from './sequelize';
 
-export class User extends Model {
-  public id!: string;
-  public username!: string;
-  public email!: string;
-  public password!: string;
-  public role!: 'user' | 'admin';
-  public isVerified!: boolean;
-  public verificationCode!: string | null;
-  public verificationExpires!: Date | null;
+export class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+  declare id: CreationOptional<string>;
+  declare username: string;
+  declare email: string;
+  declare password: string;
+  declare role: CreationOptional<'user' | 'admin'>;
+  declare isVerified: CreationOptional<boolean>;
+  declare verificationCode: string | null;
+  declare verificationExpires: Date | null;
+  declare encryptedName: string | null;
+  declare encryptedEmail: string | null;
 }
 
 User.init({
@@ -20,26 +22,31 @@ User.init({
   role: { type: DataTypes.ENUM('user', 'admin'), defaultValue: 'user' },
   isVerified: { type: DataTypes.BOOLEAN, defaultValue: false },
   verificationCode: { type: DataTypes.STRING, allowNull: true },
-  verificationExpires: { type: DataTypes.DATE, allowNull: true }
+  verificationExpires: { type: DataTypes.DATE, allowNull: true },
+  encryptedName: { type: DataTypes.STRING, allowNull: true },
+  encryptedEmail: { type: DataTypes.STRING, allowNull: true }
 }, { sequelize, modelName: 'User' });
 
 export class WhatsappBot extends Model {
-  public id!: string;
-  public userId!: string;
-  public pm2ProcessName!: string;
-  public whatsappNumber!: string | null;
-  public botName!: string;
-  public prefix!: string;
-  public ownerNumber!: string | null;
-  public status!: 'active' | 'paused' | 'expired';
-  public isActive!: boolean;
-  public remainingHours!: number;
-  public lastCalculated!: Date | null;
+  declare id: string;
+  declare userId: string;
+  declare botType: 'menma' | 'ovl';
+  declare pm2ProcessName: string;
+  declare whatsappNumber: string | null;
+  declare botName: string;
+  declare prefix: string;
+  declare ownerNumber: string | null;
+  declare status: 'active' | 'paused' | 'expired';
+  declare isActive: boolean;
+  declare remainingHours: number;
+  declare lastCalculated: Date | null;
+  declare port: number | null;
 }
 
 WhatsappBot.init({
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
   userId: { type: DataTypes.UUID, allowNull: false, unique: true },
+  botType: { type: DataTypes.ENUM('menma', 'ovl'), defaultValue: 'menma' },
   pm2ProcessName: { type: DataTypes.STRING, allowNull: false, unique: true },
   whatsappNumber: { type: DataTypes.STRING, allowNull: true },
   botName: { type: DataTypes.STRING, defaultValue: 'Menma Bot' },
@@ -48,14 +55,15 @@ WhatsappBot.init({
   status: { type: DataTypes.ENUM('active', 'paused', 'expired'), defaultValue: 'paused' },
   isActive: { type: DataTypes.BOOLEAN, defaultValue: false },
   remainingHours: { type: DataTypes.DOUBLE, defaultValue: 72.00 },
-  lastCalculated: { type: DataTypes.DATE, allowNull: true }
+  lastCalculated: { type: DataTypes.DATE, allowNull: true },
+  port: { type: DataTypes.INTEGER, allowNull: true, unique: true }
 }, { sequelize, modelName: 'WhatsappBot' });
 
 export class WhatsappSession extends Model {
-  public id!: string;
-  public botId!: string;
-  public creds!: string | null;
-  public keys!: string | null;
+  declare id: string;
+  declare botId: string;
+  declare creds: string | null;
+  declare keys: string | null;
 }
 
 WhatsappSession.init({
@@ -66,13 +74,13 @@ WhatsappSession.init({
 }, { sequelize, modelName: 'WhatsappSession' });
 
 export class SubscriptionTicket extends Model {
-  public id!: string;
-  public code!: string;
-  public hoursAmount!: number;
-  public userId!: string;
-  public transactionId!: string | null;
-  public isUsed!: boolean;
-  public usedAt!: Date | null;
+  declare id: string;
+  declare code: string;
+  declare hoursAmount: number;
+  declare userId: string;
+  declare transactionId: string | null;
+  declare isUsed: boolean;
+  declare usedAt: Date | null;
 }
 
 SubscriptionTicket.init({
@@ -86,15 +94,15 @@ SubscriptionTicket.init({
 }, { sequelize, modelName: 'SubscriptionTicket' });
 
 export class PaymentTransaction extends Model {
-  public id!: string;
-  public userId!: string;
-  public amount!: number;
-  public currency!: string;
-  public status!: 'pending' | 'success' | 'failed';
-  public type!: 'ticket' | 'direct';
-  public metadata!: any;
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  declare id: string;
+  declare userId: string;
+  declare amount: number;
+  declare currency: string;
+  declare status: 'pending' | 'success' | 'failed';
+  declare type: 'ticket' | 'direct';
+  declare metadata: any;
+  declare readonly createdAt: Date;
+  declare readonly updatedAt: Date;
 }
 
 PaymentTransaction.init({
@@ -107,10 +115,30 @@ PaymentTransaction.init({
   metadata: { type: DataTypes.JSONB, allowNull: true }
 }, { sequelize, modelName: 'PaymentTransaction' });
 
+export class PaymentLog extends Model {
+  declare id: string;
+  declare userId: string;
+  declare transactionId: string;
+  declare provider: 'cinetpay' | 'chariot';
+  declare amount: number;
+  declare status: string;
+  declare metadata: any;
+}
+
+PaymentLog.init({
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  userId: { type: DataTypes.UUID, allowNull: false },
+  transactionId: { type: DataTypes.STRING, allowNull: false, unique: true },
+  provider: { type: DataTypes.ENUM('cinetpay', 'chariot'), allowNull: false },
+  amount: { type: DataTypes.DOUBLE, allowNull: false },
+  status: { type: DataTypes.STRING, allowNull: false },
+  metadata: { type: DataTypes.JSONB, allowNull: true }
+}, { sequelize, modelName: 'PaymentLog' });
+
 export class SystemSetting extends Model {
-  public key!: string;
-  public value!: string;
-  public description!: string | null;
+  declare key: string;
+  declare value: string;
+  declare description: string | null;
 }
 
 SystemSetting.init({
@@ -128,6 +156,9 @@ SubscriptionTicket.belongsTo(User, { foreignKey: 'userId' });
 
 User.hasMany(PaymentTransaction, { foreignKey: 'userId' });
 PaymentTransaction.belongsTo(User, { foreignKey: 'userId' });
+
+User.hasMany(PaymentLog, { foreignKey: 'userId' });
+PaymentLog.belongsTo(User, { foreignKey: 'userId' });
 
 PaymentTransaction.hasOne(SubscriptionTicket, { foreignKey: 'transactionId' });
 SubscriptionTicket.belongsTo(PaymentTransaction, { foreignKey: 'transactionId' });

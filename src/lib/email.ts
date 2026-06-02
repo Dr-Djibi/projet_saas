@@ -1,4 +1,7 @@
 import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+import { siteConfig } from "@/config/site";
+dotenv.config();
 
 export const sendVerificationEmail = async (email: string, token: string) => {
   const transporter = nodemailer.createTransport({
@@ -12,9 +15,9 @@ export const sendVerificationEmail = async (email: string, token: string) => {
   });
 
   await transporter.sendMail({
-    from: `"${process.env.APP_NAME}" <${process.env.SMTP_FROM}>`,
+    from: `"${siteConfig.name}" <${process.env.SMTP_FROM}>`,
     to: email,
-    subject: `Votre code de vérification - ${process.env.APP_NAME}`,
+    subject: `Votre code de vérification - ${siteConfig.name}`,
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
         <h1>Vérification de votre compte</h1>

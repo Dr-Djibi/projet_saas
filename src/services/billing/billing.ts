@@ -47,8 +47,8 @@ export async function runBillingCron() {
 
           console.log(`[Billing Cron] Crédit épuisé pour le bot ${bot.pm2ProcessName}. Arrêt PM2.`);
           
-          // Arrêter le bot via PM2
-          await orchestrator.stopInstance(bot.userId);
+          // Arrêter le bot et le site de session via PM2
+          await orchestrator.stopAll(bot.userId);
         }
 
         await bot.save();
@@ -107,7 +107,7 @@ export async function decrementActiveBotsHourly() {
       await bot.save();
       
       try {
-        await orchestrator.stopInstance(bot.userId);
+        await orchestrator.stopAll(bot.userId);
       } catch (err) {
         console.error(`[Billing Cron] Erreur lors de l'arrêt de l'instance ${bot.userId}:`, err);
       }

@@ -1,5 +1,4 @@
-import { User } from '../src/lib/models.js';
-import sequelize from '../src/lib/models.js';
+import { User, sequelize } from '../src/lib/models.js';
 
 async function testVerification() {
   try {

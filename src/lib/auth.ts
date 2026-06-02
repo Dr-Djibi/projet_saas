@@ -25,6 +25,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         const user = await User.findOne({ where: { email: credentials.email } }) as any;
+        console.log('Login attempt for:', credentials.email, 'User found:', !!user, 'isVerified:', user?.isVerified);
 
         if (!user) {
           console.log("Login failed: User not found", credentials.email);
