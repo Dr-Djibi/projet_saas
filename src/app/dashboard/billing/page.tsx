@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { WhatsappBot, PaymentTransaction } from "@/lib/models";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@/components/ui/table";
 import { Wallet, CreditCard, History, Ticket, ArrowUpRight } from "lucide-react";
 import { RedeemTicketForm } from "@/components/redeem-ticket-form";
@@ -61,7 +61,7 @@ export default async function BillingPage() {
                 <span className="text-2xl font-black text-foreground/40">h</span>
               </div>
             </div>
-            
+
             <div className="flex-1 w-full max-w-sm">
               <RedeemTicketForm userId={userId} />
             </div>
@@ -79,17 +79,17 @@ export default async function BillingPage() {
           <CardContent className="space-y-4">
             <div className="p-4 rounded-2xl bg-white border-2 border-primary/10 flex items-center justify-between group hover:border-primary/30 transition-all cursor-pointer">
               <div>
-                <p className="font-black">72 Heures</p>
+                <p className="font-black">1 Semaine (168h)</p>
                 <p className="text-xs font-bold text-foreground/40">Idéal pour tester</p>
               </div>
-              <span className="text-lg font-black text-primary">2.00€</span>
+              <span className="text-lg font-black text-primary">1.50€</span>
             </div>
             <div className="p-4 rounded-2xl bg-white border-2 border-primary/10 flex items-center justify-between group hover:border-primary/30 transition-all cursor-pointer">
               <div>
                 <p className="font-black">1 Mois (720h)</p>
                 <p className="text-xs font-bold text-foreground/40">Le plus populaire</p>
               </div>
-              <span className="text-lg font-black text-primary">15.00€</span>
+              <span className="text-lg font-black text-primary">5.00€</span>
             </div>
             <Button className="w-full h-12 bg-black hover:bg-black/90 text-white font-black rounded-xl cursor-pointer">
               Acheter via WhatsApp
@@ -143,10 +143,9 @@ export default async function BillingPage() {
                       {tx.amount.toFixed(2)} {tx.currency}
                     </TableCell>
                     <TableCell className="px-6 text-right">
-                      <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${
-                        tx.status === 'success' ? 'bg-green-500/10 text-green-600' : 
+                      <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${tx.status === 'success' ? 'bg-green-500/10 text-green-600' :
                         tx.status === 'pending' ? 'bg-orange-500/10 text-orange-600' : 'bg-destructive/10 text-destructive'
-                      }`}>
+                        }`}>
                         {tx.status}
                       </span>
                     </TableCell>

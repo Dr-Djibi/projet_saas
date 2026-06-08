@@ -27,24 +27,21 @@ export async function POST(req: Request) {
 
     const orchestrator = new InstanceOrchestrator();
 
-    // 3. Provisionner le dossier si ce n'est pas encore fait
-    await orchestrator.provisionInstance(userId);
+    // 3. Provisionner le dossier (Bot + Session)
+    await orchestrator.provisionInstance(userId, bot.botType as 'menma' | 'ovl');
 
     // 4. Configurer les variables d'environnement locales (.env) du bot
-    await orchestrator.configureInstance(userId, {
-      botName: bot.botName || 'Menma',
-      prefix: bot.prefix || '.',
-      ownerNumber: bot.ownerNumber || ''
+    await orchestrator.configureBotEnv(userId, {
+      BOT_NAME: bot.botName || 'Menma',
+      PREFIX: bot.prefix || '.',
+      OWNER_NUMBER: bot.ownerNumber || ''
     });
 
     // 5. Écrire le creds.json dans le répertoire du bot de l'utilisateur
-    await orchestrator.writeSessionCredentials(userId, creds);
-
-    // 6. Nettoyer la base de données SQLite locale du bot (tous les fichiers .db trouvés)
-    await orchestrator.clearLocalSessionDb(userId);
+    await orchestrator.saveBotCredentials(userId, creds);
 
     // 7. Lancer ou redémarrer le bot sur le serveur avec PM2
-    await orchestrator.startInstance(userId);
+    await orchestrator.startBot(userId);
 
     // 8. Mettre à jour l'état de la base de données globale
     await WhatsappBot.update({

@@ -5,6 +5,8 @@ import { promisify } from 'util';
 import { SystemSettingsService } from '../settings/system-settings';
 import { syncRepository } from '../git/sync';
 import { EnvService } from '../env/env-service';
+import { WhatsappBot } from '../../lib/models';
+import { Op } from 'sequelize';
 
 const execFileAsync = promisify(execFile);
 
@@ -21,6 +23,34 @@ export class InstanceOrchestrator {
   private async getUserDir(userId: string): Promise<string> {
     const baseDir = await this.getBaseDir();
     return path.join(baseDir, `user_${userId}`);
+  }
+
+  /**
+   * Trouve le premier port disponible dans la plage 3000-5000.
+   */
+  private async findAvailablePort(): Promise<number> {
+    const startPort = 3000;
+    const endPort = 5000;
+
+    // Récupérer tous les ports déjà utilisés
+    const usedBots = await WhatsappBot.findAll({
+      attributes: ['port'],
+      where: {
+        port: {
+          [Op.not]: null
+        }
+      }
+    });
+
+    const usedPorts = new Set(usedBots.map(b => b.port as number));
+
+    for (let port = startPort; port <= endPort; port++) {
+      if (!usedPorts.has(port)) {
+        return port;
+      }
+    }
+
+    throw new Error("Aucun port disponible dans la plage 3000-5000");
   }
 
   /**
@@ -61,22 +91,40 @@ export class InstanceOrchestrator {
    */
   private async ensureNodeModules(targetDir: string) {
     const nodeModulesPath = path.join(targetDir, 'node_modules');
-    if (!fs.existsSync(nodeModulesPath)) {
-      const globalPath = await SystemSettingsService.getGlobalNodeModulesPath();
-      
-      try {
-        if (fs.existsSync(globalPath)) {
-          fs.symlinkSync(globalPath, nodeModulesPath, 'dir');
+    
+    // Supprimer si c'est un lien mort ou un fichier
+    if (fs.existsSync(nodeModulesPath) || fs.lstatSync(nodeModulesPath, { throwIfNoEntry: false })) {
+       try {
+         const stats = fs.lstatSync(nodeModulesPath);
+         if (stats.isSymbolicLink()) {
+           // On laisse tel quel si c'est déjà un symlink
+           return;
+         } else {
+           // Si c'est un dossier réel (peu probable avec notre flow), on le garde ou on le supprime ?
+           // Pour la robustesse on le supprime pour mettre le symlink
+           fs.rmSync(nodeModulesPath, { recursive: true, force: true });
+         }
+       } catch {
+         // Ignore errors during lstatSync
+       }
+    }
+
+    const globalPath = await SystemSettingsService.getGlobalNodeModulesPath();
+    
+    try {
+      if (fs.existsSync(globalPath)) {
+        fs.symlinkSync(globalPath, nodeModulesPath, 'dir');
+      } else {
+        // Fallback dev local
+        const devPath = path.join(process.cwd(), 'node_modules');
+        if (fs.existsSync(devPath)) {
+          fs.symlinkSync(devPath, nodeModulesPath, 'dir');
         } else {
-          // Fallback dev local
-          const devPath = path.join(process.cwd(), 'node_modules');
-          if (fs.existsSync(devPath)) {
-            fs.symlinkSync(devPath, nodeModulesPath, 'dir');
-          }
+           console.error(`[Orchestrator] global node_modules not found at ${globalPath}`);
         }
-      } catch (err: any) {
-        console.warn(`[Orchestrator] Symlink failed for ${targetDir}: ${err.message}`);
       }
+    } catch (err) {
+      console.warn(`[Orchestrator] Symlink failed for ${targetDir}: ${(err as Error).message}`);
     }
   }
 
@@ -89,10 +137,21 @@ export class InstanceOrchestrator {
     const examplePath = path.join(botDir, '.env.example');
     const targetPath = path.join(botDir, '.env');
 
+    // Récupérer ou attribuer un port
+    const bot = await WhatsappBot.findOne({ where: { userId } });
+    if (!bot) throw new Error(`Bot not found for user ${userId}`);
+
+    let port = bot.port;
+    if (!port) {
+      port = await this.findAvailablePort();
+      bot.port = port;
+      await bot.save();
+    }
+
     // Valeurs par défaut injectées
     const finalConfig: Record<string, string> = {
       ...userConfig,
-      PORT: (3000 + Math.floor(Math.random() * 1000)).toString(),
+      PORT: port.toString(),
       DATABASE_PATH: "./database.db",
     };
 
@@ -111,13 +170,88 @@ export class InstanceOrchestrator {
     const errLog = path.join(userDir, 'logs', 'bot-err.log');
 
     try {
+      // Vérifier si le processus existe déjà
       await execFileAsync('pm2', ['describe', processName]);
+      console.log(`[Orchestrator] Restarting bot for user ${userId}...`);
       await execFileAsync('pm2', ['restart', processName]);
     } catch {
-      await execFileAsync('pm2', ['start', 'index.js', '--name', processName, '--output', outLog, '--error', errLog], { cwd: botDir });
+      console.log(`[Orchestrator] Starting new bot instance for user ${userId}...`);
+      // L'instance n'existe pas, on la crée
+      await execFileAsync('pm2', [
+        'start', 'index.js', 
+        '--name', processName, 
+        '--output', outLog, 
+        '--error', errLog,
+        '--interpreter', 'node'
+      ], { cwd: botDir });
     }
 
     return processName;
+  }
+
+  /**
+   * Sauvegarde les identifiants Baileys (creds.json) pour le bot.
+   */
+  async saveBotCredentials(userId: string, creds: unknown) {
+    const userDir = await this.getUserDir(userId);
+    const botDir = path.join(userDir, 'bot');
+    const authDir = path.join(botDir, 'auth');
+
+    if (!fs.existsSync(authDir)) {
+      fs.mkdirSync(authDir, { recursive: true });
+    }
+
+    const credsPath = path.join(authDir, 'creds.json');
+    fs.writeFileSync(credsPath, JSON.stringify(creds, null, 2));
+    console.log(`[Orchestrator] Credentials saved for user ${userId}`);
+  }
+
+  /**
+   * Arrête l'instance du bot.
+   */
+  async stopBot(userId: string) {
+    const pm2Prefix = await SystemSettingsService.getPm2Prefix();
+    const processName = `${pm2Prefix}${userId}`;
+    try {
+      await execFileAsync('pm2', ['stop', processName]);
+    } catch (err) {
+      console.warn(`[Orchestrator] Failed to stop bot ${processName}:`, (err as Error).message);
+    }
+  }
+
+  /**
+   * Alias pour startBot utilisé par l'API.
+   */
+  async startInstance(userId: string) {
+    return this.startBot(userId);
+  }
+
+  /**
+   * Alias pour stopBot utilisé par l'API.
+   */
+  async stopInstance(userId: string) {
+    return this.stopBot(userId);
+  }
+
+  /**
+   * Récupère les logs de l'instance.
+   */
+  async getLogs(userId: string, type: 'out' | 'err' = 'out'): Promise<string> {
+    const userDir = await this.getUserDir(userId);
+    const logFile = path.join(userDir, 'logs', `bot-${type}.log`);
+    
+    if (!fs.existsSync(logFile)) {
+      return "Aucun log trouvé.";
+    }
+
+    try {
+      const content = fs.readFileSync(logFile, 'utf8');
+      // Retourner les 200 dernières lignes
+      const lines = content.split('\n');
+      return lines.slice(-200).join('\n');
+    } catch (error) {
+      return `Erreur lors de la lecture des logs: ${(error as Error).message}`;
+    }
   }
 
   /**
@@ -126,20 +260,42 @@ export class InstanceOrchestrator {
   async startSessionSite(userId: string): Promise<number> {
     const userDir = await this.getUserDir(userId);
     const sessionDir = path.join(userDir, 'session');
+    const logsDir = path.join(userDir, 'logs');
+    if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
+    
     const pm2Prefix = await SystemSettingsService.getPm2Prefix();
     const processName = `session-${pm2Prefix}${userId}`;
+    const outLog = path.join(logsDir, 'session-out.log');
+    const errLog = path.join(logsDir, 'session-err.log');
     
-    // Attribution de port (à perfectionner avec une table de ports en DB)
-    const port = 4000 + Math.floor(Math.random() * 1000);
+    // Utiliser un port dérivé du port du bot ou en trouver un nouveau
+    // Pour simplifier, on peut utiliser port_bot + 1000 si disponible, ou findAvailablePort
+    const bot = await WhatsappBot.findOne({ where: { userId } });
+    if (!bot) throw new Error("Bot not found");
+    
+    // Le site de session peut utiliser un port aléatoire ou fixe. 
+    // S'il est utilisé uniquement pour le scan QR, on peut le libérer après.
+    // Mais ici on le garde simple.
+    const port = await this.findAvailablePort(); // On pourrait aussi avoir un champ 'session_port' en DB
     
     // Injecter le port dans le .env du site de session
-    await EnvService.writeEnv(path.join(sessionDir, '.env'), { PORT: port.toString(), USER_ID: userId });
+    await EnvService.writeEnv(path.join(sessionDir, '.env'), { 
+      PORT: port.toString(), 
+      USER_ID: userId,
+      // On peut ajouter d'autres variables si nécessaire
+    });
 
     try {
       await execFileAsync('pm2', ['describe', processName]);
       await execFileAsync('pm2', ['restart', processName]);
     } catch {
-      await execFileAsync('pm2', ['start', 'index.js', '--name', processName], { cwd: sessionDir });
+      await execFileAsync('pm2', [
+        'start', 'index.js', 
+        '--name', processName,
+        '--output', outLog,
+        '--error', errLog,
+        '--interpreter', 'node'
+      ], { cwd: sessionDir });
     }
 
     return port;
@@ -159,13 +315,31 @@ export class InstanceOrchestrator {
    */
   async destroyInstance(userId: string) {
     const pm2Prefix = await SystemSettingsService.getPm2Prefix();
+    
+    // 1. Arrêt et suppression PM2
     try { await execFileAsync('pm2', ['delete', `${pm2Prefix}${userId}`]); } catch {}
     try { await execFileAsync('pm2', ['delete', `session-${pm2Prefix}${userId}`]); } catch {}
 
+    // 2. Suppression des fichiers
     const userDir = await this.getUserDir(userId);
     if (fs.existsSync(userDir)) {
-      fs.rmSync(userDir, { recursive: true, force: true });
-      console.log(`[Orchestrator] Instance destroyed for user ${userId}`);
+      try {
+        fs.rmSync(userDir, { recursive: true, force: true });
+        console.log(`[Orchestrator] Instance directory deleted for user ${userId}`);
+      } catch (err) {
+        console.error(`[Orchestrator] Failed to delete directory ${userDir}:`, (err as Error).message);
+      }
     }
+    
+    // 3. Libération du port en DB
+    const bot = await WhatsappBot.findOne({ where: { userId } });
+    if (bot) {
+      bot.port = null;
+      await bot.save();
+    }
+
+    
+    console.log(`[Orchestrator] Instance fully destroyed for user ${userId}`);
   }
 }
+

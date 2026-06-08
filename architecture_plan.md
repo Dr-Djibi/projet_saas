@@ -81,12 +81,24 @@ Le système de monétisation est basé sur le temps d'instance (`remainingHours`
 
 ---
 
+## 6. 🎨 DESIGN & UX : RESPONSIVE SYSTEM (MAESTRO + UI/UX PRO MAX)
+
+L'interface doit offrir une expérience fluide de 350px (mobile) à grand écran (desktop).
+
+### Approche
+- **Framework** : Vanilla CSS + composants React.
+- **Outils** : Maestro (orchestration) et `ui-ux-pro-max` (design patterns) pour garantir une cohérence visuelle.
+- **Responsive** :
+  - `Mobile First` (350px+) : Navigation simplifiée, menus tactiles, lisibilité optimale.
+  - `Desktop` : Exploitation de l'espace pour des tableaux de bord riches.
+- **Composants** : Design System standardisé via `src/components/ui/`.
+
+---
+
 ## 📅 ROADMAP D'IMPLÉMENTATION
 
-1. [x] Mise à jour des modèles Sequelize (`WhatsappBot`, `SystemSettings`).
-2. [x] Création du `GitService` pour le clonage/pull.
-3. [x] Création du `EnvService` pour la gestion des `.env`.
-4. [ ] Finalisation de l' `InstanceOrchestrator` (PM2 & Symlinks).
-5. [ ] Création de l'API Webhook pour la réception des sessions.
-6. [ ] Intégration des gateways de paiement.
-7. [ ] Interface Dashboard pour la configuration des variables.
+1. [ ] Finalisation de l' `InstanceOrchestrator` (PM2 & Symlinks).
+2. [ ] Création de l'API Webhook pour la réception des sessions.
+3. [ ] Intégration des gateways de paiement.
+4. [ ] Interface Dashboard pour la configuration des variables.
+5. [ ] **UI/UX Design & Implémentation** : Responsive System via `ui-ux-pro-max` et Maestro.

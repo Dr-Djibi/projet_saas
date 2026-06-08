@@ -2,20 +2,21 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Power, Play } from "lucide-react";
+import { Power, Play, Trash2, FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-export function InstanceActions({ botId, isActive }: { botId: string; isActive: boolean }) {
+export function InstanceActions({ botId, isActive, onViewLogs }: { botId: string; isActive: boolean; onViewLogs: () => void }) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleAction = async (action: "start" | "stop") => {
+  const handleAction = async (action: "start" | "stop" | "delete") => {
+    if (action === "delete" && !confirm("Êtes-vous sûr de vouloir supprimer cette instance ?")) return;
     setLoading(true);
     try {
       const res = await fetch("/api/bots/action", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({ action, botId }),
       });
       if (res.ok) {
         router.refresh();
@@ -23,7 +24,7 @@ export function InstanceActions({ botId, isActive }: { botId: string; isActive: 
         const data = await res.json();
         alert(data.message || "Erreur lors de l'action");
       }
-    } catch (error) {
+    } catch (_error) {
       alert("Erreur lors de l'action");
     } finally {
       setLoading(false);
@@ -32,6 +33,14 @@ export function InstanceActions({ botId, isActive }: { botId: string; isActive: 
 
   return (
     <div className="flex justify-end gap-2">
+      <Button 
+        size="sm" 
+        variant="ghost" 
+        className="h-9 px-3 text-foreground/60 hover:text-foreground font-black cursor-pointer"
+        onClick={onViewLogs}
+      >
+        <FileText className="h-4 w-4 mr-1" /> Logs
+      </Button>
       {isActive ? (
         <Button 
           size="sm" 
@@ -52,6 +61,15 @@ export function InstanceActions({ botId, isActive }: { botId: string; isActive: 
           <Play className="h-4 w-4 mr-1" /> {loading ? "..." : "Start"}
         </Button>
       )}
+      <Button 
+        size="sm" 
+        variant="ghost" 
+        className="h-9 px-3 text-destructive hover:bg-destructive/10 hover:text-destructive font-black cursor-pointer"
+        onClick={() => handleAction("delete")}
+        disabled={loading}
+      >
+        <Trash2 className="h-4 w-4" />
+      </Button>
     </div>
   );
 }

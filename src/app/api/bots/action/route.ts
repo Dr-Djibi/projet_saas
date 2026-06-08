@@ -14,10 +14,10 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { action } = await req.json();
+    const { action, botId } = await req.json();
     const userId = (session.user as any).id;
 
-    const bot = await WhatsappBot.findOne({ where: { userId } });
+    const bot = await WhatsappBot.findOne({ where: { userId, id: botId } });
     if (!bot) {
       return NextResponse.json({ message: "Bot non trouvé" }, { status: 404 });
     }
@@ -31,6 +31,10 @@ export async function POST(req: Request) {
     } else if (action === "stop") {
       await orchestrator.stopInstance(userId);
       await bot.update({ isActive: false, status: 'paused' });
+    } else if (action === "delete") {
+      await orchestrator.destroyInstance(userId);
+      await bot.destroy();
+      return NextResponse.json({ message: "Instance supprimée" }, { status: 200 });
     } else {
       return NextResponse.json({ message: "Action invalide" }, { status: 400 });
     }

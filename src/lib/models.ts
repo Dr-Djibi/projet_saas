@@ -1,4 +1,4 @@
-import { DataTypes, Model, Sequelize, InferAttributes, InferCreationAttributes, CreationOptional } from 'sequelize';
+import { DataTypes, Model, InferAttributes, InferCreationAttributes, CreationOptional } from 'sequelize';
 import sequelize from './sequelize';
 
 export class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
@@ -27,21 +27,22 @@ User.init({
   encryptedEmail: { type: DataTypes.STRING, allowNull: true }
 }, { sequelize, modelName: 'User' });
 
-export class WhatsappBot extends Model {
-  declare id: string;
+export class WhatsappBot extends Model<InferAttributes<WhatsappBot>, InferCreationAttributes<WhatsappBot>> {
+  declare id: CreationOptional<string>;
   declare userId: string;
-  declare botType: 'menma' | 'ovl';
+  declare botType: CreationOptional<'menma' | 'ovl'>;
   declare pm2ProcessName: string;
-  declare whatsappNumber: string | null;
-  declare botName: string;
-  declare prefix: string;
-  declare ownerNumber: string | null;
-  declare status: 'active' | 'paused' | 'expired';
-  declare isActive: boolean;
-  declare remainingHours: number;
-  declare lastCalculated: Date | null;
-  declare port: number | null;
+  declare whatsappNumber: CreationOptional<string | null>;
+  declare botName: CreationOptional<string>;
+  declare prefix: CreationOptional<string>;
+  declare ownerNumber: CreationOptional<string | null>;
+  declare status: CreationOptional<'active' | 'paused' | 'expired'>;
+  declare isActive: CreationOptional<boolean>;
+  declare remainingHours: CreationOptional<number>;
+  declare lastCalculated: CreationOptional<Date | null>;
+  declare port: CreationOptional<number | null>;
 }
+
 
 WhatsappBot.init({
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
@@ -59,11 +60,11 @@ WhatsappBot.init({
   port: { type: DataTypes.INTEGER, allowNull: true, unique: true }
 }, { sequelize, modelName: 'WhatsappBot' });
 
-export class WhatsappSession extends Model {
-  declare id: string;
+export class WhatsappSession extends Model<InferAttributes<WhatsappSession>, InferCreationAttributes<WhatsappSession>> {
+  declare id: CreationOptional<string>;
   declare botId: string;
-  declare creds: string | null;
-  declare keys: string | null;
+  declare creds: CreationOptional<string | null>;
+  declare keys: CreationOptional<string | null>;
 }
 
 WhatsappSession.init({
@@ -73,14 +74,14 @@ WhatsappSession.init({
   keys: { type: DataTypes.TEXT, allowNull: true }
 }, { sequelize, modelName: 'WhatsappSession' });
 
-export class SubscriptionTicket extends Model {
-  declare id: string;
+export class SubscriptionTicket extends Model<InferAttributes<SubscriptionTicket>, InferCreationAttributes<SubscriptionTicket>> {
+  declare id: CreationOptional<string>;
   declare code: string;
   declare hoursAmount: number;
   declare userId: string;
-  declare transactionId: string | null;
-  declare isUsed: boolean;
-  declare usedAt: Date | null;
+  declare transactionId: CreationOptional<string | null>;
+  declare isUsed: CreationOptional<boolean>;
+  declare usedAt: CreationOptional<Date | null>;
 }
 
 SubscriptionTicket.init({
@@ -93,16 +94,16 @@ SubscriptionTicket.init({
   usedAt: { type: DataTypes.DATE, allowNull: true }
 }, { sequelize, modelName: 'SubscriptionTicket' });
 
-export class PaymentTransaction extends Model {
-  declare id: string;
+export class PaymentTransaction extends Model<InferAttributes<PaymentTransaction>, InferCreationAttributes<PaymentTransaction>> {
+  declare id: CreationOptional<string>;
   declare userId: string;
   declare amount: number;
   declare currency: string;
-  declare status: 'pending' | 'success' | 'failed';
+  declare status: CreationOptional<'pending' | 'success' | 'failed'>;
   declare type: 'ticket' | 'direct';
-  declare metadata: any;
-  declare readonly createdAt: Date;
-  declare readonly updatedAt: Date;
+  declare metadata: CreationOptional<Record<string, unknown> | null>;
+  declare readonly createdAt: CreationOptional<Date>;
+  declare readonly updatedAt: CreationOptional<Date>;
 }
 
 PaymentTransaction.init({
@@ -112,17 +113,19 @@ PaymentTransaction.init({
   currency: { type: DataTypes.STRING, allowNull: false },
   status: { type: DataTypes.ENUM('pending', 'success', 'failed'), defaultValue: 'pending' },
   type: { type: DataTypes.ENUM('ticket', 'direct'), allowNull: false },
-  metadata: { type: DataTypes.JSONB, allowNull: true }
-}, { sequelize, modelName: 'PaymentTransaction' });
+  metadata: { type: DataTypes.JSONB, allowNull: true },
+  createdAt: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
+  updatedAt: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW }
+}, { sequelize, modelName: 'PaymentTransaction', timestamps: true });
 
-export class PaymentLog extends Model {
-  declare id: string;
+export class PaymentLog extends Model<InferAttributes<PaymentLog>, InferCreationAttributes<PaymentLog>> {
+  declare id: CreationOptional<string>;
   declare userId: string;
   declare transactionId: string;
   declare provider: 'cinetpay' | 'chariot';
   declare amount: number;
   declare status: string;
-  declare metadata: any;
+  declare metadata: CreationOptional<Record<string, unknown> | null>;
 }
 
 PaymentLog.init({
@@ -135,11 +138,12 @@ PaymentLog.init({
   metadata: { type: DataTypes.JSONB, allowNull: true }
 }, { sequelize, modelName: 'PaymentLog' });
 
-export class SystemSetting extends Model {
+export class SystemSetting extends Model<InferAttributes<SystemSetting>, InferCreationAttributes<SystemSetting>> {
   declare key: string;
   declare value: string;
-  declare description: string | null;
+  declare description: CreationOptional<string | null>;
 }
+
 
 SystemSetting.init({
   key: { type: DataTypes.STRING, primaryKey: true },
