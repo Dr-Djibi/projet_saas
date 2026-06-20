@@ -4,8 +4,9 @@ import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { User } from "@/lib/models";
+import { User, WhatsappBot } from "@/lib/models";
 import { User as UserIcon, Mail, ShieldCheck, ShieldAlert, Key, Smartphone } from "lucide-react";
+import { BotSettingsForm } from "@/components/bot-settings-form";
 
 export default async function SettingsPage() {
   const session = await getServerSession(authOptions);
@@ -16,6 +17,8 @@ export default async function SettingsPage() {
 
   const userId = (session.user as any).id;
   const user = await User.findByPk(userId) as any;
+
+  const bot = await WhatsappBot.findOne({ where: { userId } }) as any;
 
   if (!user) {
     redirect("/login");
@@ -81,8 +84,26 @@ export default async function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Security & System */}
+        {/* Security & Bot Settings */}
         <div className="space-y-8">
+          <Card className="border-2 border-primary/10 shadow-none rounded-3xl overflow-hidden">
+            <CardHeader className="border-b-2 border-primary/5 bg-primary/5">
+              <CardTitle className="text-xl font-black flex items-center gap-2">
+                <Smartphone className="h-6 w-6 text-primary" />
+                Configuration du Bot
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <BotSettingsForm initialBot={bot ? {
+                id: bot.id,
+                botName: bot.botName,
+                botType: bot.botType,
+                prefix: bot.prefix,
+                ownerNumber: bot.ownerNumber
+              } : null} />
+            </CardContent>
+          </Card>
+
           <Card className="border-2 border-primary/10 shadow-none rounded-3xl overflow-hidden">
             <CardHeader className="border-b-2 border-primary/5 bg-primary/5">
               <CardTitle className="text-xl font-black flex items-center gap-2">
@@ -97,29 +118,6 @@ export default async function SettingsPage() {
               <Button variant="outline" className="w-full h-12 border-2 border-primary/10 hover:border-primary/30 font-black rounded-xl cursor-pointer">
                 Changer le mot de passe
               </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="border-2 border-primary/10 shadow-none rounded-3xl overflow-hidden">
-            <CardHeader className="border-b-2 border-primary/5 bg-primary/5">
-              <CardTitle className="text-xl font-black flex items-center gap-2">
-                <Smartphone className="h-6 w-6 text-primary" />
-                Préférences de Bot
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6 space-y-4">
-              <div className="flex items-center justify-between p-2">
-                <span className="font-bold">Notifications WhatsApp</span>
-                <div className="h-6 w-11 rounded-full bg-primary/20 relative cursor-pointer">
-                  <div className="absolute right-1 top-1 h-4 w-4 rounded-full bg-primary shadow-sm" />
-                </div>
-              </div>
-              <div className="flex items-center justify-between p-2">
-                <span className="font-bold">Auto-Redémarrage</span>
-                <div className="h-6 w-11 rounded-full bg-primary relative cursor-pointer">
-                  <div className="absolute right-1 top-1 h-4 w-4 rounded-full bg-white shadow-sm" />
-                </div>
-              </div>
             </CardContent>
           </Card>
         </div>

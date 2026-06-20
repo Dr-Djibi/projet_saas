@@ -33,23 +33,30 @@ export async function POST(req: NextRequest) {
 
     const orchestrator = new InstanceOrchestrator();
 
-    // 2. Save credentials (creds.json) to the bot directory
+    // 2. Update bot status in database
+    const bot = await WhatsappBot.findByPk(botId);
+    if (!bot) {
+      console.warn(`[Webhook] Bot with ID ${botId} not found in database.`);
+      return NextResponse.json({ error: 'Bot not found' }, { status: 404 });
+    }
+
+    // 3. Configure bot local environment (.env)
+    await orchestrator.configureBotEnv(userId, {
+      BOT_NAME: bot.botName || 'Menma',
+      PREFIX: bot.prefix || '.',
+      OWNER_NUMBER: bot.ownerNumber || ''
+    });
+
+    // 4. Save credentials (creds.json) to the bot directory
     await orchestrator.saveBotCredentials(userId, creds);
 
-    // 3. Start or restart the bot via PM2
+    // 5. Start or restart the bot via PM2
     await orchestrator.startBot(userId);
 
-    // 4. Update bot status in database
-    const bot = await WhatsappBot.findByPk(botId);
-    if (bot) {
-      bot.isActive = true;
-      bot.status = 'active';
-      // If we received the number from the session site, we could update it here too.
-      // For now, we assume the bot index.js will handle its own identity.
-      await bot.save();
-    } else {
-      console.warn(`[Webhook] Bot with ID ${botId} not found in database.`);
-    }
+    // 6. Mark bot active
+    bot.isActive = true;
+    bot.status = 'active';
+    await bot.save();
 
     return NextResponse.json({ 
       success: true, 

@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { WhatsappBot } from "@/lib/models";
 import { SystemSettingsService } from "@/services/settings/system-settings";
+import { InstanceOrchestrator } from "@/services/instance-orchestrator/orchestrator";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+
+const orchestrator = new InstanceOrchestrator();
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -13,6 +16,8 @@ export async function POST(req: Request) {
 
   try {
     const userId = (session.user as any).id;
+    const body = await req.json().catch(() => ({}));
+    const { botType = "menma", botName = "Menma Bot", prefix = ".", ownerNumber = "" } = body;
 
     // Check if user already has a bot
     const existingBot = await WhatsappBot.findOne({
@@ -31,20 +36,31 @@ export async function POST(req: Request) {
     const pm2ProcessName = `${pm2Prefix}${userId.slice(0, 8)}-${Date.now()}`;
     const defaultHours = await SystemSettingsService.getDefaultRemainingHours();
 
+    // 1. Create bot record in database
     const bot = await WhatsappBot.create({
       userId,
+      botType: botType as 'menma' | 'ovl',
       pm2ProcessName,
+      botName,
+      prefix,
+      ownerNumber,
       isActive: false,
       status: 'paused',
       remainingHours: defaultHours,
     });
 
+    // 2. Clone Git repositories and prepare directories immediately
+    console.log(`[Provision API] Starting Git clone/provisioning for user ${userId} (${botType})...`);
+    await orchestrator.provisionInstance(userId, botType as 'menma' | 'ovl');
+    console.log(`[Provision API] Git provisioning finished for user ${userId}`);
+
     return NextResponse.json({ bot }, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Bot provision error:", error);
     return NextResponse.json(
-      { message: "Erreur lors de la création du bot" },
+      { message: "Erreur lors de la création du bot", details: error.message },
       { status: 500 }
     );
   }
 }
+
