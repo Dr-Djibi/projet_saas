@@ -53,6 +53,7 @@
     "eslint-config-next": "16.2.6",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
+    "tsx": "^4.23.0",
     "typescript": "^5",
     "uipro-cli": "^2.2.3"
   },

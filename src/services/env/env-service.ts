@@ -47,10 +47,11 @@ export class EnvService {
 
   static writeEnv(targetPath: string, values: Record<string, string>) {
     const content = Object.entries(values)
-      .map(([key, value]) => `${key}=${value}`)
+      .map(([key, value]) => `${key}="${value.replace(/"/g, '\\"')}"`)
       .join('\n');
     fs.writeFileSync(targetPath, content);
   }
+
 
   /**
    * Lit un fichier .env et retourne un objet clé/valeur.

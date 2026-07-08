@@ -9,8 +9,17 @@ import { WhatsappBot } from '@/lib/models';
  */
 export async function POST(req: NextRequest) {
   try {
+    // 0. Validate shared secret header (anti-spoofing)
+    const webhookSecret = req.headers.get('x-webhook-secret');
+    const expectedSecret = process.env.SAAS_WEBHOOK_SECRET || 'secret-partage-session';
+    if (!webhookSecret || webhookSecret !== expectedSecret) {
+      console.warn('[Webhook] Rejected: invalid or missing x-webhook-secret');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await req.json();
     const { token, creds } = body;
+
 
     if (!token || !creds) {
       return NextResponse.json(
