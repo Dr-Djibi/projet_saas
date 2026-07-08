@@ -30,15 +30,15 @@ export default async function InstancesPage() {
   return (
     <div className="space-y-10">
       <div className="flex flex-col gap-2">
-        <h2 className="text-4xl font-black tracking-tight text-foreground">Mes Instances</h2>
-        <p className="text-foreground/60 font-medium">Gérez vos instances de bot WhatsApp et surveillez leur état en temps réel.</p>
+        <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-foreground">Mes Instances</h2>
+        <p className="text-foreground/60 font-medium text-sm sm:text-base">Gérez vos instances de bot WhatsApp et surveillez leur état en temps réel.</p>
       </div>
 
       <Card className="border-2 border-primary/10 shadow-none rounded-3xl overflow-hidden">
         <CardHeader className="border-b-2 border-primary/5 bg-primary/5">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-xl font-black flex items-center gap-2">
-              <Bot className="h-6 w-6 text-primary" />
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <CardTitle className="text-lg sm:text-xl font-black flex items-center gap-2">
+              <Bot className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               Liste des Instances
             </CardTitle>
             {!bots.length && (

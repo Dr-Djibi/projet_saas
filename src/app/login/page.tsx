@@ -60,7 +60,7 @@ function LoginForm() {
         <Input
           type="email"
           placeholder="votre@email.com"
-          className="h-14 px-6 rounded-2xl border-2 border-primary/10 bg-white focus:border-primary focus:ring-0 transition-all font-bold"
+          className="h-14 px-6 rounded-2xl border-2 border-primary/10 bg-background focus:border-primary focus:ring-0 transition-all font-bold"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -70,7 +70,7 @@ function LoginForm() {
         <Input
           type="password"
           placeholder="Mot de passe"
-          className="h-14 px-6 rounded-2xl border-2 border-primary/10 bg-white focus:border-primary focus:ring-0 transition-all font-bold"
+          className="h-14 px-6 rounded-2xl border-2 border-primary/10 bg-background focus:border-primary focus:ring-0 transition-all font-bold"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
@@ -107,7 +107,7 @@ function LoginContent() {
   const searchParams = useSearchParams();
   
   return (
-    <Card className="border-2 border-primary/10 shadow-none rounded-[2.5rem] p-4 bg-white/50 backdrop-blur-sm">
+    <Card className="border-2 border-primary/10 shadow-none rounded-[2.5rem] p-4 bg-card/50 backdrop-blur-sm">
       <CardHeader className="pt-8 pb-4 text-center">
         <CardTitle className="text-2xl font-black">Connexion</CardTitle>
         <CardDescription className="text-foreground/50 font-bold uppercase tracking-widest text-[10px]">Entrez vos identifiants</CardDescription>

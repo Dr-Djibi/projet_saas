@@ -68,7 +68,7 @@ export default function SignupPage() {
           </div>
         </div>
         
-        <Card className="border-2 border-primary/10 shadow-none rounded-[2.5rem] p-4 bg-white/50 backdrop-blur-sm">
+        <Card className="border-2 border-primary/10 shadow-none rounded-[2.5rem] p-4 bg-card/50 backdrop-blur-sm">
           <CardHeader className="pt-8 pb-4 text-center">
             <CardTitle className="text-2xl font-black">Inscription</CardTitle>
             <CardDescription className="text-foreground/50 font-bold uppercase tracking-widest text-[10px]">Entrez vos informations</CardDescription>
@@ -80,7 +80,7 @@ export default function SignupPage() {
                 placeholder="Votre nom"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="h-14 px-6 rounded-2xl border-2 border-primary/10 bg-white focus:border-primary focus:ring-0 transition-all font-bold"
+                className="h-14 px-6 rounded-2xl border-2 border-primary/10 bg-background focus:border-primary focus:ring-0 transition-all font-bold"
                 required
               />
               <Input
@@ -88,7 +88,7 @@ export default function SignupPage() {
                 placeholder="votre@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-14 px-6 rounded-2xl border-2 border-primary/10 bg-white focus:border-primary focus:ring-0 transition-all font-bold"
+                className="h-14 px-6 rounded-2xl border-2 border-primary/10 bg-background focus:border-primary focus:ring-0 transition-all font-bold"
                 required
               />
               <div className="relative">
@@ -97,7 +97,7 @@ export default function SignupPage() {
                   placeholder="Mot de passe"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="h-14 pl-6 pr-12 rounded-2xl border-2 border-primary/10 bg-white focus:border-primary focus:ring-0 transition-all font-bold w-full"
+                  className="h-14 pl-6 pr-12 rounded-2xl border-2 border-primary/10 bg-background focus:border-primary focus:ring-0 transition-all font-bold w-full"
                   required
                 />
                 <button
@@ -113,7 +113,7 @@ export default function SignupPage() {
                 placeholder="Confirmer mot de passe"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="h-14 px-6 rounded-2xl border-2 border-primary/10 bg-white focus:border-primary focus:ring-0 transition-all font-bold"
+                className="h-14 px-6 rounded-2xl border-2 border-primary/10 bg-background focus:border-primary focus:ring-0 transition-all font-bold"
                 required
               />
               

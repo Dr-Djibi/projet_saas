@@ -24,16 +24,15 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Identifiants manquants");
         }
 
-        const user = await User.findOne({ where: { email: credentials.email } }) as any;
-        console.log('Login attempt for:', credentials.email, 'User found:', !!user, 'isVerified:', user?.isVerified);
+        const normalizedEmail = credentials.email.trim().toLowerCase();
+
+        const user = await User.findOne({ where: { email: normalizedEmail } }) as any;
 
         if (!user) {
-          console.log("Login failed: User not found", credentials.email);
           throw new Error("Email ou mot de passe incorrect");
         }
 
         if (!user.isVerified) {
-          console.log("Login failed: User not verified", credentials.email);
           throw new Error("Veuillez vérifier votre email avant de vous connecter");
         }
 
@@ -43,11 +42,9 @@ export const authOptions: NextAuthOptions = {
         );
 
         if (!isPasswordCorrect) {
-          console.log("Login failed: Incorrect password", credentials.email);
           throw new Error("Email ou mot de passe incorrect");
         }
 
-        console.log("Login success:", credentials.email);
         return {
           id: user.id,
           email: user.email,

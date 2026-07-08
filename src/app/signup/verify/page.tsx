@@ -136,7 +136,7 @@ export default function VerifyPage() {
           <h1 className="text-4xl font-black tracking-tight text-foreground leading-tight">Vérification</h1>
         </div>
 
-        <Card className="border-2 border-primary/10 shadow-none rounded-[2.5rem] p-4 bg-white/50 backdrop-blur-sm">
+        <Card className="border-2 border-primary/10 shadow-none rounded-[2.5rem] p-4 bg-card/50 backdrop-blur-sm">
           <CardContent className="pt-8 pb-8">
             <Suspense fallback={<div className="text-center p-10 font-bold">Chargement...</div>}>
               <VerifyForm />

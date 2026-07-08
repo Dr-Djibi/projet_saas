@@ -3,6 +3,9 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { WhatsappBot } from "@/lib/models";
 import { DashboardBotControl } from "@/components/dashboard-bot-control";
+import { InstanceOrchestrator } from "@/services/instance-orchestrator/orchestrator";
+
+const orchestrator = new InstanceOrchestrator();
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -14,10 +17,13 @@ export default async function DashboardPage() {
   const userId = (session.user as any).id;
   const bot = await WhatsappBot.findOne({
     where: { userId },
-  }) as any;
+  });
+
+  const liveStatus = bot ? await orchestrator.getLiveStatus(userId) : "stopped";
+  const initialBotData = bot ? { ...bot.toJSON(), liveStatus } : null;
 
   return (
-    <DashboardBotControl initialBot={bot ? bot.toJSON() : null} userId={userId} />
+    <DashboardBotControl initialBot={initialBotData} userId={userId} />
   );
 }
 

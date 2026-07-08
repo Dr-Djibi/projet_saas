@@ -48,38 +48,244 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* ============================================
+   DARK THEME (Default) — Premium Gold & Dark Palette
+   ============================================ */
 :root {
-  /* High-Contrast Light Theme: Black Text on White/Light Background */
-  --background: #FFFFFF;
-  --foreground: #000000; /* Black Text */
-  
-  --card: #F9F9F9;
-  --card-foreground: #000000;
-  
-  --popover: #FFFFFF;
-  --popover-foreground: #000000;
-  
-  --primary: #D4AF37; /* Keep Gold accent */
-  --primary-foreground: #000000;
-  
-  --secondary: #F3F3F3;
-  --secondary-foreground: #000000;
-  
-  --muted: #E5E5E5;
-  --muted-foreground: #525252; /* Dark Gray for muted */
-  
-  --accent: #E5E5E5;
-  --accent-foreground: #000000;
-  
-  --destructive: #B91C1C;
-  --border: #D4D4D4;
-  --input: #D4D4D4;
-  --ring: #D4AF37;
+  --background: #08080A;
+  --foreground: #F5F5F7;
+
+  --card: #0F0F13;
+  --card-foreground: #F5F5F7;
+
+  --popover: #0F0F13;
+  --popover-foreground: #F5F5F7;
+
+  --primary: #C9A227;        /* Warm Gold */
+  --primary-foreground: #0A0A0A;
+
+  --secondary: #17171C;
+  --secondary-foreground: #F5F5F7;
+
+  --muted: #1F1F26;
+  --muted-foreground: #8E8E9F;
+
+  --accent: #2C2515;
+  --accent-foreground: #F5F5F7;
+
+  --destructive: #EF4444;
+  --border: #1F1F26;
+  --input: #1F1F26;
+  --ring: #C9A227;
   --radius: 0.75rem;
+
+  /* Sidebar */
+  --sidebar: #0F0F13;
+  --sidebar-foreground: #F5F5F7;
+  --sidebar-primary: #C9A227;
+  --sidebar-primary-foreground: #0A0A0A;
+  --sidebar-accent: #2C2515;
+  --sidebar-accent-foreground: #F5F5F7;
+  --sidebar-border: #1F1F26;
+  --sidebar-ring: #C9A227;
+
+  /* Charts */
+  --chart-1: #C9A227;
+  --chart-2: #10B981;
+  --chart-3: #3B82F6;
+  --chart-4: #8B5CF6;
+  --chart-5: #F59E0B;
 }
 
+/* ============================================
+   LIGHT THEME — Classic high contrast
+   ============================================ */
+.light {
+  --background: #FAFAFA;
+  --foreground: #0A0A0A;
+
+  --card: #FFFFFF;
+  --card-foreground: #0A0A0A;
+
+  --popover: #FFFFFF;
+  --popover-foreground: #0A0A0A;
+
+  --primary: #C9A227;        /* Warm Gold */
+  --primary-foreground: #FFFFFF;
+
+  --secondary: #F2F2F2;
+  --secondary-foreground: #0A0A0A;
+
+  --muted: #EBEBEB;
+  --muted-foreground: #6B6B6B;
+
+  --accent: #F5F0E0;
+  --accent-foreground: #0A0A0A;
+
+  --destructive: #DC2626;
+  --border: #E2E2E2;
+  --input: #E2E2E2;
+  --ring: #C9A227;
+
+  /* Sidebar */
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #0A0A0A;
+  --sidebar-primary: #C9A227;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F5F0E0;
+  --sidebar-accent-foreground: #0A0A0A;
+  --sidebar-border: #E2E2E2;
+  --sidebar-ring: #C9A227;
+
+  /* Charts */
+  --chart-1: #C9A227;
+  --chart-2: #10B981;
+  --chart-3: #3B82F6;
+  --chart-4: #8B5CF6;
+  --chart-5: #F59E0B;
+}
+
+/* ============================================
+   GLOBAL BASE STYLES
+   ============================================ */
 @layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;    /* ← bloque le scroll horizontal global */
+    max-width: 100%;        /* ← empêche le dépassement */
+  }
+
   body {
     @apply bg-background text-foreground;
+    font-size: 16px; /* WCAG 2.2 minimum */
+    line-height: 1.6;
+    min-height: 100dvh; /* Dynamic viewport for mobile */
+    overflow-x: hidden;  /* ← sécurité supplémentaire */
+    max-width: 100vw;    /* ← jamais plus large que l'écran */
+  }
+
+  /* Focus visible — accessibilité clavier */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Cibles tactiles WCAG 2.2 — 44x44px minimum */
+  button,
+  [role="button"],
+  a,
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+  }
+
+  /* Scrollbar personnalisée — desktop */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 100px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--muted-foreground);
+  }
+}
+
+/* ============================================
+   ANIMATIONS & MICRO-INTERACTIONS
+   ============================================ */
+@layer utilities {
+  /* Fade in */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Fade in up — hero elements */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Scale in — modales, cartes */
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  /* Shimmer — loading states */
+  @keyframes shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  /* Subtle glow pulse */
+  @keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(201, 162, 39, 0); }
+    50%       { box-shadow: 0 0 20px 4px rgba(201, 162, 39, 0.15); }
+  }
+
+  .animate-fade-in        { animation: fadeIn 0.4s ease both; }
+  .animate-fade-in-up     { animation: fadeInUp 0.5s ease both; }
+  .animate-scale-in       { animation: scaleIn 0.3s ease both; }
+  .animate-glow-pulse     { animation: glowPulse 2.5s ease-in-out infinite; }
+
+  /* Stagger delays for lists */
+  .delay-100 { animation-delay: 100ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-400 { animation-delay: 400ms; }
+
+  /* Glassmorphism utility */
+  .glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  /* Gradient text */
+  .text-gradient {
+    background: linear-gradient(135deg, var(--primary), #F5C842, #C9A227);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Shimmer loading */
+  .skeleton {
+    background: linear-gradient(90deg, var(--muted) 25%, var(--secondary) 50%, var(--muted) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* Safe area padding — iPhone notch / Dynamic Island */
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 1rem); }
+  .safe-top    { padding-top: env(safe-area-inset-top, 0); }
+
+  /* Anti-overflow safety — wraps long text or URLs on mobile */
+  .break-anywhere { overflow-wrap: anywhere; word-break: break-word; }
+
+  /* Full-width safe container — never overflows the viewport */
+  .container-safe {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
   }
 }

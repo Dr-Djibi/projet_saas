@@ -234,6 +234,34 @@ export class InstanceOrchestrator {
   }
 
   /**
+   * Vérifie le statut réel du processus PM2 en direct.
+   */
+  async getLiveStatus(userId: string): Promise<'online' | 'stopped' | 'errored' | 'unknown'> {
+    const pm2Prefix = await SystemSettingsService.getPm2Prefix();
+    const processName = `${pm2Prefix}${userId}`;
+
+    try {
+      const { stdout } = await execFileAsync('pm2', ['jlist']);
+      const list = JSON.parse(stdout);
+      const processInfo = list.find((p: any) => p.name === processName);
+      
+      if (!processInfo) {
+        return 'stopped';
+      }
+
+      const status = processInfo.pm2_env?.status;
+      if (status === 'online') return 'online';
+      if (status === 'stopped' || status === 'stopping') return 'stopped';
+      if (status === 'errored') return 'errored';
+      
+      return 'unknown';
+    } catch (err) {
+      console.warn(`[Orchestrator] Failed to get live status for ${processName}:`, (err as Error).message);
+      return 'unknown';
+    }
+  }
+
+  /**
    * Récupère les logs de l'instance.
    */
   async getLogs(userId: string, type: 'out' | 'err' = 'out'): Promise<string> {

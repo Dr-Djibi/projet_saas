@@ -39,7 +39,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Action invalide" }, { status: 400 });
     }
 
-    return NextResponse.json({ bot }, { status: 200 });
+    const liveStatus = await orchestrator.getLiveStatus(userId);
+    return NextResponse.json({ bot: { ...bot.toJSON(), liveStatus } }, { status: 200 });
   } catch (error) {
     console.error("Bot action error:", error);
     return NextResponse.json(

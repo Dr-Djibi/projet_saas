@@ -27,8 +27,8 @@ export default async function SettingsPage() {
   return (
     <div className="space-y-10">
       <div className="flex flex-col gap-2">
-        <h2 className="text-4xl font-black tracking-tight text-foreground">Paramètres</h2>
-        <p className="text-foreground/60 font-medium">Gérez vos informations personnelles et la sécurité de votre compte.</p>
+        <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-foreground">Paramètres</h2>
+        <p className="text-foreground/60 font-medium text-sm sm:text-base">Gérez vos informations personnelles et la sécurité de votre compte.</p>
       </div>
 
       <div className="grid gap-8 md:grid-cols-2">

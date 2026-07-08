@@ -41,6 +41,7 @@ export class WhatsappBot extends Model<InferAttributes<WhatsappBot>, InferCreati
   declare remainingHours: CreationOptional<number>;
   declare lastCalculated: CreationOptional<Date | null>;
   declare port: CreationOptional<number | null>;
+  declare expiryAlertSent: CreationOptional<boolean>;
 }
 
 
@@ -57,7 +58,8 @@ WhatsappBot.init({
   isActive: { type: DataTypes.BOOLEAN, defaultValue: false },
   remainingHours: { type: DataTypes.DOUBLE, defaultValue: 72.00 },
   lastCalculated: { type: DataTypes.DATE, allowNull: true },
-  port: { type: DataTypes.INTEGER, allowNull: true, unique: true }
+  port: { type: DataTypes.INTEGER, allowNull: true, unique: true },
+  expiryAlertSent: { type: DataTypes.BOOLEAN, defaultValue: false }
 }, { sequelize, modelName: 'WhatsappBot' });
 
 export class WhatsappSession extends Model<InferAttributes<WhatsappSession>, InferCreationAttributes<WhatsappSession>> {

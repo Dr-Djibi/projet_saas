@@ -1,22 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { 
-  Bot, 
-  Power, 
-  RefreshCw, 
-  Settings, 
-  Activity, 
-  Signal, 
-  Play, 
-  Trash2, 
-  FileText, 
-  QrCode, 
+import {
+  Bot,
+  Power,
+  RefreshCw,
+  Settings,
+  Activity,
+  Signal,
+  Play,
+  Trash2,
+  FileText,
+  QrCode,
   ExternalLink,
   ChevronRight,
   Loader2,
@@ -41,6 +41,55 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
   const [connectionUrl, setConnectionUrl] = useState<string | null>(null);
   const [logs, setLogs] = useState("");
   const [logsOpen, setLogsOpen] = useState(false);
+
+  // Auto-refresh logs when panel is open
+  useEffect(() => {
+    if (!logsOpen) return;
+
+    const fetchLogs = async () => {
+      try {
+        const res = await fetch(`/api/bots/logs?type=out`);
+        const data = await res.json();
+        setLogs(data.logs || "Pas de logs disponibles.");
+      } catch (error) {
+        setLogs("Impossible de récupérer les logs.");
+      }
+    };
+
+    // Premier chargement immédiat
+    fetchLogs();
+
+    // Polling toutes les 3 secondes
+    const interval = setInterval(fetchLogs, 3000);
+
+    return () => clearInterval(interval);
+  }, [logsOpen]);
+
+  // Polling du statut global du bot toutes les 15 secondes
+  useEffect(() => {
+    if (!bot) return;
+
+    const checkStatus = async () => {
+      try {
+        const res = await fetch("/api/bots/status");
+        if (res.ok) {
+          const data = await res.json();
+          setBot((prev: any) => prev ? {
+            ...prev,
+            liveStatus: data.liveStatus,
+            isActive: data.isActive,
+            remainingHours: data.remainingHours,
+            status: data.status
+          } : null);
+        }
+      } catch (err) {
+        console.error("Failed to check status:", err);
+      }
+    };
+
+    const interval = setInterval(checkStatus, 15000);
+    return () => clearInterval(interval);
+  }, [bot?.id]);
 
   // Form states for provisioning
   const [botType, setBotType] = useState<"menma" | "ovl">("menma");
@@ -126,17 +175,10 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
     }
   };
 
-  // Fetch logs
-  const handleViewLogs = async () => {
+  // Fetch logs (simplifié car géré par le useEffect)
+  const handleViewLogs = () => {
     setLogsOpen(true);
     setLogs("Chargement des logs en temps réel...");
-    try {
-      const res = await fetch(`/api/bots/logs?type=out`);
-      const data = await res.json();
-      setLogs(data.logs || "Pas de logs disponibles.");
-    } catch (error) {
-      setLogs("Impossible de récupérer les logs.");
-    }
   };
 
   // 1. CREATION WIZARD STATE
@@ -162,14 +204,14 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
           <span className={provisionStep === 3 ? "text-primary" : ""}>3. Déploiement</span>
         </div>
 
-        <Card className="border-2 border-primary/10 shadow-xl shadow-primary/2 rounded-3xl overflow-hidden bg-white">
+        <Card className="border-2 border-primary/10 shadow-xl shadow-primary/2 rounded-3xl overflow-hidden bg-card">
           <CardHeader className="border-b-2 border-primary/5 bg-primary/5 p-6">
             <CardTitle className="text-xl font-black">
               {provisionStep === 1 ? "Choisissez le modèle de bot" : "Informations de configuration"}
             </CardTitle>
             <CardDescription className="font-bold">
-              {provisionStep === 1 
-                ? "Sélectionnez le code source à déployer sur votre serveur." 
+              {provisionStep === 1
+                ? "Sélectionnez le code source à déployer sur votre serveur."
                 : "Ces valeurs seront injectées automatiquement dans le fichier .env du bot."
               }
             </CardDescription>
@@ -180,11 +222,10 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
                 <div className="grid gap-6 md:grid-cols-2">
                   <div
                     onClick={() => setBotType("menma")}
-                    className={`p-6 rounded-3xl border-2 cursor-pointer transition-all flex flex-col gap-3 group relative overflow-hidden ${
-                      botType === "menma"
-                        ? "border-primary bg-primary/5 ring-4 ring-primary/10"
-                        : "border-primary/10 bg-card hover:border-primary/30"
-                    }`}
+                    className={`p-6 rounded-3xl border-2 cursor-pointer transition-all flex flex-col gap-3 group relative overflow-hidden ${botType === "menma"
+                      ? "border-primary bg-primary/5 ring-4 ring-primary/10"
+                      : "border-primary/10 bg-card hover:border-primary/30"
+                      }`}
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-black text-lg text-foreground">Menma-MD</span>
@@ -198,11 +239,10 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
 
                   <div
                     onClick={() => setBotType("ovl")}
-                    className={`p-6 rounded-3xl border-2 cursor-pointer transition-all flex flex-col gap-3 group relative overflow-hidden ${
-                      botType === "ovl"
-                        ? "border-primary bg-primary/5 ring-4 ring-primary/10"
-                        : "border-primary/10 bg-card hover:border-primary/30"
-                    }`}
+                    className={`p-6 rounded-3xl border-2 cursor-pointer transition-all flex flex-col gap-3 group relative overflow-hidden ${botType === "ovl"
+                      ? "border-primary bg-primary/5 ring-4 ring-primary/10"
+                      : "border-primary/10 bg-card hover:border-primary/30"
+                      }`}
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-black text-lg text-foreground">Ovl-MD</span>
@@ -216,7 +256,7 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
                 </div>
 
                 <div className="flex justify-end pt-4">
-                  <Button 
+                  <Button
                     onClick={() => setProvisionStep(2)}
                     className="px-8 h-12 bg-primary hover:bg-primary/90 text-white font-black rounded-xl border-b-4 border-black/20 active:border-b-0 active:translate-y-[2px]"
                   >
@@ -228,7 +268,7 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
               <form onSubmit={handleProvision} className="space-y-6">
                 <div className="space-y-2">
                   <label className="text-sm font-black uppercase tracking-wider text-foreground/60 ml-1">Nom du Bot</label>
-                  <Input 
+                  <Input
                     value={botName}
                     onChange={(e) => setBotName(e.target.value)}
                     className="h-12 border-2 border-primary/10 rounded-xl font-bold focus-visible:ring-primary"
@@ -240,7 +280,7 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-black uppercase tracking-wider text-foreground/60 ml-1">Préfixe</label>
-                    <Input 
+                    <Input
                       value={prefix}
                       onChange={(e) => setPrefix(e.target.value)}
                       className="h-12 border-2 border-primary/10 rounded-xl font-bold focus-visible:ring-primary"
@@ -252,7 +292,7 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
 
                   <div className="space-y-2">
                     <label className="text-sm font-black uppercase tracking-wider text-foreground/60 ml-1">Numéro Propriétaire (JID)</label>
-                    <Input 
+                    <Input
                       value={ownerNumber}
                       onChange={(e) => setOwnerNumber(e.target.value)}
                       className="h-12 border-2 border-primary/10 rounded-xl font-bold focus-visible:ring-primary"
@@ -262,7 +302,7 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
                 </div>
 
                 <div className="flex items-center justify-between pt-6 border-t border-primary/5">
-                  <Button 
+                  <Button
                     type="button"
                     variant="ghost"
                     onClick={() => setProvisionStep(1)}
@@ -270,7 +310,7 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
                   >
                     Retour
                   </Button>
-                  <Button 
+                  <Button
                     type="submit"
                     disabled={provisionLoading}
                     className="px-8 h-12 bg-primary hover:bg-primary/90 text-white font-black rounded-xl border-b-4 border-black/20 active:border-b-0 active:translate-y-[2px] transition-all cursor-pointer gap-2"
@@ -303,34 +343,34 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
     <div className="space-y-10 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-3">
-            <h2 className="text-4xl font-black tracking-tight text-foreground">{bot.botName || "Mon Bot"}</h2>
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-foreground">{bot.botName || "Mon Bot"}</h2>
             <span className="text-xs font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-primary/10 text-primary">
               {bot.botType === "menma" ? "Menma-MD" : "Ovl-MD"}
             </span>
           </div>
-          <p className="text-foreground/60 font-medium">
-            Port d&apos;hébergement : <span className="font-mono bg-primary/5 px-2 py-0.5 rounded text-primary">{bot.port || "Non attribué"}</span> | Processus PM2 : <span className="font-mono text-xs">{bot.pm2ProcessName}</span>
+          <p className="text-sm text-foreground/60 font-medium break-all">
+            Port : <span className="font-mono bg-primary/5 px-2 py-0.5 rounded text-primary">{bot.port || "Non attribué"}</span> | PM2 : <span className="font-mono text-xs">{bot.pm2ProcessName}</span>
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button 
-            onClick={handleViewLogs} 
-            variant="outline" 
-            className="h-12 border-2 border-primary/10 hover:border-primary/30 font-black rounded-xl gap-2 cursor-pointer"
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            onClick={handleViewLogs}
+            variant="outline"
+            className="h-11 sm:h-12 border-2 border-primary/10 hover:border-primary/30 font-black rounded-xl gap-2 cursor-pointer"
           >
-            <FileText className="h-5 w-5" />
-            Voir les Logs
+            <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="hidden sm:inline">Voir les </span>Logs
           </Button>
 
-          <Button 
+          <Button
             onClick={() => handleAction("delete")}
-            variant="ghost" 
+            variant="ghost"
             disabled={actionLoading}
-            className="h-12 px-4 text-destructive hover:bg-destructive/10 hover:text-destructive font-black rounded-xl cursor-pointer"
+            className="h-11 sm:h-12 px-4 text-destructive hover:bg-destructive/10 hover:text-destructive font-black rounded-xl cursor-pointer"
           >
-            <Trash2 className="h-5 w-5" />
+            <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
         </div>
       </div>
@@ -376,22 +416,22 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
 
       {connectionUrl && (
         <Card className="border-2 border-green-500/20 bg-green-500/5 shadow-none rounded-3xl">
-          <CardContent className="p-8 space-y-4">
+          <CardContent className="p-5 sm:p-8 space-y-4">
             <div className="flex items-center gap-2 text-green-700 font-black">
-              <CheckCircle2 className="h-5 w-5 text-green-600" />
+              <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />
               Session d&apos;association démarrée !
             </div>
             <p className="text-sm font-medium text-foreground/70 max-w-2xl">
               Le serveur de connexion a été lancé avec succès. Cliquez sur le bouton ci-dessous pour ouvrir la page d&apos;appairage, où vous pourrez scanner le code QR ou obtenir un code de liaison.
             </p>
-            <div className="flex items-center gap-3 pt-2">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 pt-2">
               <Button
                 onClick={() => window.open(connectionUrl, "_blank")}
-                className="h-12 px-6 bg-green-600 hover:bg-green-700 text-white font-black rounded-xl border-b-4 border-black/20 active:border-b-0 active:translate-y-[2px] cursor-pointer gap-2"
+                className="h-12 px-6 bg-green-600 hover:bg-green-700 text-white font-black rounded-xl border-b-4 border-black/20 active:border-b-0 active:translate-y-[2px] cursor-pointer gap-2 shrink-0"
               >
                 Ouvrir la page de connexion <ExternalLink className="h-4 w-4" />
               </Button>
-              <span className="text-xs font-bold text-foreground/40 font-mono select-all">
+              <span className="text-xs font-bold text-foreground/40 font-mono break-all select-all">
                 {connectionUrl}
               </span>
             </div>
@@ -400,7 +440,7 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
       )}
 
       {/* Grid status cards */}
-      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 mx-auto max-w-6xl w-full">
         {/* Status Card */}
         <Card className="border-2 border-primary/10 shadow-none rounded-3xl overflow-hidden group hover:border-primary/30 transition-all bg-card/40">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 border-b-2 border-primary/5 bg-primary/5">
@@ -409,13 +449,26 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
           </CardHeader>
           <CardContent className="pt-8 flex flex-col items-center justify-center">
             <div className="flex items-center gap-3">
-              <div className={`h-4.5 w-4.5 rounded-full ${bot.isActive ? "bg-green-500 animate-pulse" : "bg-orange-500"}`} />
+              <div className={`h-4.5 w-4.5 rounded-full ${bot.liveStatus === "online" || (!bot.liveStatus && bot.isActive)
+                ? "bg-green-500 animate-pulse"
+                : bot.liveStatus === "errored"
+                  ? "bg-red-500 animate-pulse"
+                  : "bg-orange-500"
+                }`} />
               <div className="text-4xl font-black">
-                {bot.isActive ? "Actif" : "Inactif"}
+                {bot.liveStatus === "online" || (!bot.liveStatus && bot.isActive)
+                  ? "Actif"
+                  : bot.liveStatus === "errored"
+                    ? "Erreur"
+                    : "Inactif"}
               </div>
             </div>
-            <p className="mt-4 text-xs font-bold text-foreground/40">
-              {bot.isActive ? "Connecté au réseau WhatsApp" : "En attente de démarrage ou déconnecté"}
+            <p className="mt-4 text-xs font-bold text-foreground/40 text-center">
+              {bot.liveStatus === "online" || (!bot.liveStatus && bot.isActive)
+                ? "L'instance PM2 tourne sur le serveur"
+                : bot.liveStatus === "errored"
+                  ? "Le processus a rencontré une erreur"
+                  : "L'instance est actuellement arrêtée"}
             </p>
           </CardContent>
         </Card>
@@ -444,7 +497,7 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
             <Signal className="h-5 w-5 text-primary" />
           </CardHeader>
           <CardContent className="pt-8 flex flex-col gap-4">
-            {bot.isActive ? (
+            {(bot.liveStatus === "online" || (!bot.liveStatus && bot.isActive)) ? (
               <Button
                 onClick={() => handleAction("stop")}
                 disabled={actionLoading}
@@ -463,7 +516,7 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
                 {actionLoading ? "Démarrage..." : "Démarrer le bot"}
               </Button>
             )}
-            
+
             {isPaired && (
               <Button
                 onClick={handleStartSession}
@@ -485,14 +538,14 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
           <CardTitle className="text-lg font-black">Informations de Configuration</CardTitle>
         </CardHeader>
         <CardContent className="pt-6 space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
             <div className="space-y-1">
               <span className="text-xs font-black text-foreground/40 uppercase">Préfixe</span>
               <p className="font-bold text-lg font-mono">{bot.prefix || "."}</p>
             </div>
             <div className="space-y-1">
               <span className="text-xs font-black text-foreground/40 uppercase">Propriétaire</span>
-              <p className="font-bold text-lg font-mono">{bot.ownerNumber || "Non défini"}</p>
+              <p className="font-bold text-base sm:text-lg font-mono break-all">{bot.ownerNumber || "Non défini"}</p>
             </div>
             <div className="space-y-1">
               <span className="text-xs font-black text-foreground/40 uppercase">Modèle</span>
@@ -517,7 +570,7 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
 
       {/* Logs View Sheet */}
       <Sheet open={logsOpen} onOpenChange={setLogsOpen}>
-        <SheetContent className="w-[600px] sm:w-[850px] p-6 flex flex-col h-full bg-black border-l-2 border-zinc-800">
+        <SheetContent className="w-full sm:w-[600px] md:w-[850px] p-4 sm:p-6 flex flex-col h-full bg-black border-l-2 border-zinc-800">
           <SheetHeader className="border-b border-zinc-800 pb-4">
             <SheetTitle className="text-white font-black text-2xl flex items-center gap-2">
               <FileText className="h-6 w-6 text-primary" />
@@ -531,14 +584,14 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
             <div>{logs}</div>
           </div>
           <div className="mt-4 flex justify-between border-t border-zinc-800 pt-4">
-            <Button 
+            <Button
               onClick={handleViewLogs}
               className="bg-primary hover:bg-primary/90 text-white font-black rounded-xl border-b-4 border-black/20 active:border-b-0 active:translate-y-[2px]"
             >
               Rafraîchir
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setLogsOpen(false)}
               className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-xl font-black"
             >

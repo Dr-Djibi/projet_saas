@@ -1,6 +1,7 @@
-import { WhatsappBot, SubscriptionTicket, sequelize } from '../../lib/models';
+import { WhatsappBot, SubscriptionTicket, User, sequelize } from '../../lib/models';
 import { InstanceOrchestrator } from '../instance-orchestrator/orchestrator';
 import { Transaction, Op, literal } from 'sequelize';
+import { sendExpirationWarningEmail } from '../../lib/email';
 
 /**
  * Routine de facturation en temps réel.
@@ -39,7 +40,21 @@ export async function runBillingCron() {
         bot.remainingHours = Math.max(0, bot.remainingHours - deltaHours);
         bot.lastCalculated = now;
 
-        // 4. Si le crédit est épuisé, suspendre l'instance
+        // 4. Avertissement d'expiration imminente (<= 24h)
+        if (bot.remainingHours > 0 && bot.remainingHours <= 24 && !bot.expiryAlertSent) {
+          const user = await User.findByPk(bot.userId);
+          if (user && user.email) {
+            console.log(`[Billing Cron] Envoi email d'expiration imminente à ${user.email} pour le bot ${bot.botName}`);
+            try {
+              await sendExpirationWarningEmail(user.email, bot.botName || 'Menma Bot', bot.remainingHours);
+              bot.expiryAlertSent = true;
+            } catch (emailErr) {
+              console.error(`[Billing Cron] Erreur lors de l'envoi de l'email d'expiration pour ${bot.pm2ProcessName}:`, emailErr);
+            }
+          }
+        }
+
+        // 5. Si le crédit est épuisé, suspendre l'instance
         if (bot.remainingHours <= 0) {
           bot.status = 'expired';
           bot.isActive = false;
@@ -149,6 +164,11 @@ export async function redeemTicket(userId: string, code: string) {
     // Si le bot était expiré, il redevient 'paused' pour que l'utilisateur puisse le relancer
     if (bot.status === 'expired') {
       bot.status = 'paused';
+    }
+
+    // Réinitialiser le flag d'alerte email si le solde remonte au-dessus de 24h
+    if (bot.remainingHours > 24) {
+      bot.expiryAlertSent = false;
     }
     
     await bot.save({ transaction: t });

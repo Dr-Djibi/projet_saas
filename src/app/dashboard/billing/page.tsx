@@ -37,11 +37,11 @@ export default async function BillingPage() {
   return (
     <div className="space-y-10">
       <div className="flex flex-col gap-2">
-        <h2 className="text-4xl font-black tracking-tight text-foreground">Facturation & Crédits</h2>
-        <p className="text-foreground/60 font-medium">Gérez vos crédits de temps et consultez l&apos;historique de vos transactions.</p>
+        <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-foreground">Facturation &amp; Crédits</h2>
+        <p className="text-foreground/60 font-medium text-sm sm:text-base">Gérez vos crédits de temps et consultez l&apos;historique de vos transactions.</p>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-3">
+      <div className="grid gap-6 sm:gap-8 lg:grid-cols-3">
         {/* Balance Card */}
         <Card className="lg:col-span-2 border-2 border-primary/10 shadow-none rounded-3xl overflow-hidden">
           <CardHeader className="border-b-2 border-primary/5 bg-primary/5">
@@ -77,14 +77,14 @@ export default async function BillingPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="p-4 rounded-2xl bg-white border-2 border-primary/10 flex items-center justify-between group hover:border-primary/30 transition-all cursor-pointer">
+            <div className="p-4 rounded-2xl bg-card border-2 border-primary/10 flex items-center justify-between group hover:border-primary/30 transition-all cursor-pointer">
               <div>
                 <p className="font-black">1 Semaine (168h)</p>
                 <p className="text-xs font-bold text-foreground/40">Idéal pour tester</p>
               </div>
               <span className="text-lg font-black text-primary">1.50€</span>
             </div>
-            <div className="p-4 rounded-2xl bg-white border-2 border-primary/10 flex items-center justify-between group hover:border-primary/30 transition-all cursor-pointer">
+            <div className="p-4 rounded-2xl bg-card border-2 border-primary/10 flex items-center justify-between group hover:border-primary/30 transition-all cursor-pointer">
               <div>
                 <p className="font-black">1 Mois (720h)</p>
                 <p className="text-xs font-bold text-foreground/40">Le plus populaire</p>

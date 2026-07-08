@@ -1,49 +1,45 @@
 import { NextResponse } from 'next/server';
 import { redeemTicket } from '@/services/billing/billing';
-
-// Basic in-memory rate limiting
-const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
-const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
-const MAX_REQUESTS = 5;
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 /**
  * API pour utiliser un ticket d'abonnement.
- * Prend un code de ticket et un userId, et ajoute les heures correspondantes au bot de l'utilisateur.
+ * Prend un code de ticket et ajoute les heures correspondantes au bot de l'utilisateur connecté.
  */
 export async function POST(req: Request) {
-  // Simple rate limiting by IP (assuming X-Forwarded-For if behind proxy, or just client IP)
-  // Since we don't have access to request headers easily in this context, we'll use a placeholder IP
-  const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
-  const now = Date.now();
-  const limit = rateLimitMap.get(clientIp) || { count: 0, lastReset: now };
-
-  if (now - limit.lastReset > RATE_LIMIT_WINDOW_MS) {
-    limit.count = 1;
-    limit.lastReset = now;
-  } else {
-    limit.count++;
-  }
-  rateLimitMap.set(clientIp, limit);
-
-  if (limit.count > MAX_REQUESTS) {
+  // --- Rate limiting : max 5 tentatives / IP / minute ---
+  const ip = getClientIp(req);
+  const rl = rateLimit(`redeem:${ip}`, { limit: 5, windowMs: 60 * 1000 });
+  if (!rl.success) {
     return NextResponse.json(
       { error: 'Trop de tentatives. Veuillez réessayer plus tard.' },
       { status: 429 }
     );
   }
 
-  try {
-    const body = await req.json();
-    const { code, userId } = body;
+  // --- Authentification ---
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user) {
+    return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+  }
 
-    if (!code || !userId) {
+  try {
+    const userId = (session.user as any).id;
+    const body = await req.json();
+    const { code } = body;
+
+    const trimmedCode = code?.trim();
+
+    if (!trimmedCode) {
       return NextResponse.json(
-        { error: 'Le code du ticket et l\'ID utilisateur sont requis.' },
+        { error: 'Le code du ticket est requis.' },
         { status: 400 }
       );
     }
 
-    const result = await redeemTicket(userId, code);
+    const result = await redeemTicket(userId, trimmedCode);
 
     return NextResponse.json({
       success: true,
@@ -54,7 +50,6 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error('[Redeem API Error]:', error);
     
-    // On retourne une erreur explicite si possible
     return NextResponse.json(
       { error: error.message || 'Une erreur est survenue lors de l\'utilisation du ticket.' },
       { status: 400 }
