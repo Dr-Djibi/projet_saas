@@ -18,12 +18,12 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { token, creds } = body;
+    const { token, sessionId } = body;
 
 
-    if (!token || !creds) {
+    if (!token || !sessionId) {
       return NextResponse.json(
-        { error: 'Missing token or credentials' }, 
+        { error: 'Missing token or sessionId' }, 
         { status: 400 }
       );
     }
@@ -53,11 +53,9 @@ export async function POST(req: NextRequest) {
     await orchestrator.configureBotEnv(userId, {
       BOT_NAME: bot.botName || 'Menma',
       PREFIX: bot.prefix || '.',
-      OWNER_NUMBER: bot.ownerNumber || ''
+      OWNER_NUMBER: bot.ownerNumber || '',
+      SESSION_ID: sessionId
     });
-
-    // 4. Save credentials (creds.json) to the bot directory
-    await orchestrator.saveBotCredentials(userId, creds);
 
     // 5. Start or restart the bot via PM2
     await orchestrator.startBot(userId);

@@ -22,7 +22,8 @@ import {
   Loader2,
   Clock,
   CheckCircle2,
-  HelpCircle
+  HelpCircle,
+  KeyRound
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -41,6 +42,11 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
   const [connectionUrl, setConnectionUrl] = useState<string | null>(null);
   const [logs, setLogs] = useState("");
   const [logsOpen, setLogsOpen] = useState(false);
+
+  // States for manual session ID
+  const [manualSessionOpen, setManualSessionOpen] = useState(false);
+  const [manualSessionId, setManualSessionId] = useState("");
+  const [manualSessionLoading, setManualSessionLoading] = useState(false);
 
   // Auto-refresh logs when panel is open
   useEffect(() => {
@@ -143,6 +149,36 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
       alert("Une erreur réseau est survenue.");
     } finally {
       setSessionLoading(false);
+    }
+  };
+
+  // Handle manual session ID submission
+  const handleManualSession = async () => {
+    if (!manualSessionId.trim()) return alert("Veuillez entrer un Session ID valide.");
+    
+    setManualSessionLoading(true);
+    try {
+      const res = await fetch("/api/bots/session/manual", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: manualSessionId.trim() })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert("Session configurée avec succès ! Le bot démarre.");
+        setManualSessionOpen(false);
+        setManualSessionId("");
+        
+        // Refresh bot status locally to show it's paired
+        setBot((prev: any) => prev ? { ...prev, isActive: true, liveStatus: "online" } : prev);
+        router.refresh();
+      } else {
+        alert(data.message || "Erreur lors de l'enregistrement de la session.");
+      }
+    } catch (error) {
+      alert("Une erreur est survenue.");
+    } finally {
+      setManualSessionLoading(false);
     }
   };
 
@@ -413,6 +449,14 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
                   </>
                 )}
               </Button>
+              <Button
+                onClick={() => setManualSessionOpen(true)}
+                variant="outline"
+                className="h-12 px-6 font-black rounded-xl border-orange-500/20 text-orange-700 hover:bg-orange-500/10 cursor-pointer gap-2"
+              >
+                <KeyRound className="h-5 w-5" />
+                J'ai déjà un Session ID
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -540,24 +584,34 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
             )}
 
             {isPaired && (
-              <Button
-                onClick={handleStartSession}
-                disabled={sessionLoading}
-                variant="outline"
-                className="w-full h-12 font-black border-2 border-primary/10 hover:border-primary/30 rounded-xl cursor-pointer gap-2 transition-all"
-              >
-                {sessionLoading ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    Démarrage...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="h-5 w-5" />
-                    Associer un autre numéro
-                  </>
-                )}
-              </Button>
+              <>
+                <Button
+                  onClick={handleStartSession}
+                  disabled={sessionLoading}
+                  variant="outline"
+                  className="w-full h-12 font-black border-2 border-primary/10 hover:border-primary/30 rounded-xl cursor-pointer gap-2 transition-all"
+                >
+                  {sessionLoading ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      Démarrage...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-5 w-5" />
+                      Associer un autre numéro
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={() => setManualSessionOpen(true)}
+                  variant="outline"
+                  className="w-full h-12 font-black border-2 border-primary/10 hover:border-primary/30 rounded-xl cursor-pointer gap-2 transition-all"
+                >
+                  <KeyRound className="h-5 w-5" />
+                  Saisir un Session ID Manuel
+                </Button>
+              </>
             )}
           </CardContent>
         </Card>
@@ -627,6 +681,56 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
               className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white rounded-xl font-black"
             >
               Fermer
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Manual Session ID Modal */}
+      <Sheet open={manualSessionOpen} onOpenChange={setManualSessionOpen}>
+        <SheetContent side="bottom" className="w-full max-w-2xl mx-auto rounded-t-3xl border-t-2 border-primary/20 bg-background sm:p-8">
+          <SheetHeader className="text-left space-y-2 pb-6 border-b border-primary/10">
+            <SheetTitle className="text-2xl font-black flex items-center gap-2 text-foreground">
+              <KeyRound className="h-6 w-6 text-primary" />
+              Entrer un Session ID
+            </SheetTitle>
+            <SheetDescription className="text-foreground/70 font-medium">
+              Si vous avez déjà généré un Session ID ailleurs, collez-le ici pour l'associer directement à ce bot.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="py-8 space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-black uppercase tracking-wider text-foreground/60 ml-1">Clé de Session (Session ID)</label>
+              <Input
+                value={manualSessionId}
+                onChange={(e) => setManualSessionId(e.target.value)}
+                placeholder="Ex: Menma_md_abc123_SESSION_ID"
+                className="h-14 text-base border-2 border-primary/20 rounded-xl font-mono focus-visible:ring-primary shadow-inner bg-primary/5"
+              />
+            </div>
+            <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-700 text-xs font-bold flex items-start gap-2">
+              <HelpCircle className="h-4 w-4 shrink-0 mt-0.5" />
+              <p>Une fois le Session ID soumis, le serveur va redémarrer votre bot et injecter cette clé directement dans ses paramètres. Si la clé est valide, le bot s'activera.</p>
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 pt-4 border-t border-primary/10">
+            <Button
+              variant="ghost"
+              onClick={() => setManualSessionOpen(false)}
+              className="font-black h-12 px-6"
+            >
+              Annuler
+            </Button>
+            <Button
+              onClick={handleManualSession}
+              disabled={manualSessionLoading || !manualSessionId.trim()}
+              className="bg-primary hover:bg-primary/90 text-white font-black h-12 px-8 rounded-xl border-b-4 border-black/20 active:border-b-0 active:translate-y-[2px] transition-all"
+            >
+              {manualSessionLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                "Sauvegarder et Démarrer"
+              )}
             </Button>
           </div>
         </SheetContent>
