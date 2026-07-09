@@ -26,8 +26,9 @@ export async function POST(req: Request) {
     }
 
     // 1. Construire l'URL du site de session centralisé (Koyeb)
-    //    La méthode retourne : ${SESSION_SITE_URL}/pair?userId=${userId}
-    const connectionUrl = await orchestrator.startSessionSite(userId);
+    //    - Menma → https://menma-md-web.koyeb.app/pair?userId=...
+    //    - OVL   → https://ovl-web.koyeb.app/pair?userId=...
+    const connectionUrl = await orchestrator.startSessionSite(userId, bot.botType as 'menma' | 'ovl');
 
     return NextResponse.json({
       success: true,

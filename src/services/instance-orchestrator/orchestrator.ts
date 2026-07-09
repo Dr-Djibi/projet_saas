@@ -276,13 +276,13 @@ export class InstanceOrchestrator {
 
   /**
    * Construit l'URL du site de session centralisé (Koyeb) avec le userId en paramètre.
-   * Le site de session est un service partagé — plus de clonage par utilisateur.
+   * Le site est choisi selon le type de bot : Menma ou OVL.
    */
-  async startSessionSite(userId: string): Promise<string> {
-    const sessionSiteUrl = await SystemSettingsService.getSessionSiteUrl();
+  async startSessionSite(userId: string, botType: 'menma' | 'ovl' = 'menma'): Promise<string> {
+    const sessionSiteUrl = await SystemSettingsService.getSessionSiteUrl(botType);
     // On construit l'URL de la page de couplage avec l'identifiant de l'utilisateur
     const connectionUrl = `${sessionSiteUrl}/pair?userId=${encodeURIComponent(userId)}`;
-    console.log(`[Orchestrator] Session URL generated for user ${userId}: ${connectionUrl}`);
+    console.log(`[Orchestrator] Session URL (${botType}) for user ${userId}: ${connectionUrl}`);
     return connectionUrl;
   }
 

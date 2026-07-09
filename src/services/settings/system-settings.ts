@@ -13,10 +13,12 @@ export class SystemSettingsService {
   private static fallbacks: Record<string, string> = {
     APP_NAME: process.env.NEXT_PUBLIC_APP_NAME || 'OVL & MENMA',
     APP_DESCRIPTION: process.env.NEXT_PUBLIC_APP_DESCRIPTION || 'Hébergement de bots WhatsApp',
-    MENMA_BOT_REPO_URL: process.env.MENMA_BOT_REPO_URL || 'https://github.com/Dr-Djibi/menma-bot.git',
-    OVL_BOT_REPO_URL: process.env.OVL_BOT_REPO_URL || 'https://github.com/Dr-Djibi/ovl-md.git',
-    SESSION_REPO_URL: process.env.SESSION_REPO_URL || 'https://github.com/menma-md/session-web.git',
-    SESSION_SITE_URL: process.env.SESSION_SITE_URL || 'http://localhost:3000',
+    MENMA_BOT_REPO_URL: process.env.MENMA_BOT_REPO_URL || 'https://github.com/Dr-Djibi/Menma-MD.git',
+    OVL_BOT_REPO_URL: process.env.OVL_BOT_REPO_URL || 'https://github.com/Ainz-devs/OVL-MD-V2.git',
+    // Site de session Menma (pour les bots de type 'menma')
+    MENMA_SESSION_URL: process.env.MENMA_SESSION_URL || 'https://menma-md-web.koyeb.app',
+    // Site de session OVL (pour les bots de type 'ovl')
+    OVL_SESSION_URL: process.env.OVL_SESSION_URL || 'https://ovl-web.koyeb.app',
     SAAS_WEBHOOK_SECRET: process.env.SAAS_WEBHOOK_SECRET || 'secret-partage-session',
     PM2_PROCESS_PREFIX: process.env.PM2_PROCESS_PREFIX || 'bot-user-',
     GLOBAL_NODE_MODULES_PATH: process.env.GLOBAL_NODE_MODULES_PATH || '/var/www/global_node_modules/node_modules',
@@ -84,12 +86,15 @@ export class SystemSettingsService {
     return this.getSetting('OVL_BOT_REPO_URL');
   }
 
-  static async getSessionRepoUrl(): Promise<string> {
-    return this.getSetting('SESSION_REPO_URL');
-  }
-
-  static async getSessionSiteUrl(): Promise<string> {
-    return this.getSetting('SESSION_SITE_URL');
+  /**
+   * Retourne l'URL du site de session selon le type de bot.
+   * Menma → MENMA_SESSION_URL, OVL → OVL_SESSION_URL
+   */
+  static async getSessionSiteUrl(botType: 'menma' | 'ovl' = 'menma'): Promise<string> {
+    if (botType === 'ovl') {
+      return this.getSetting('OVL_SESSION_URL');
+    }
+    return this.getSetting('MENMA_SESSION_URL');
   }
 
   static async getWebhookSecret(): Promise<string> {
