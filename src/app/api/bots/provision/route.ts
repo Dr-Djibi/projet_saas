@@ -49,10 +49,17 @@ export async function POST(req: Request) {
       remainingHours: defaultHours,
     });
 
-    // 2. Clone Git repositories and prepare directories immediately
-    console.log(`[Provision API] Starting Git clone/provisioning for user ${userId} (${botType})...`);
-    await orchestrator.provisionInstance(userId, botType as 'menma' | 'ovl');
-    console.log(`[Provision API] Git provisioning finished for user ${userId}`);
+    try {
+      // 2. Clone Git repositories and prepare directories immediately
+      console.log(`[Provision API] Starting Git clone/provisioning for user ${userId} (${botType})...`);
+      await orchestrator.provisionInstance(userId, botType as 'menma' | 'ovl');
+      console.log(`[Provision API] Git provisioning finished for user ${userId}`);
+    } catch (provisionError: any) {
+      // Rollback database record if provisioning (cloning) fails
+      console.error(`[Provision API] Git clone failed, rolling back DB creation for user ${userId}:`, provisionError.message);
+      await bot.destroy();
+      throw provisionError;
+    }
 
     return NextResponse.json({ bot }, { status: 201 });
   } catch (error: any) {

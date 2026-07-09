@@ -276,13 +276,17 @@ export class InstanceOrchestrator {
 
   /**
    * Construit l'URL du site de session centralisé (Koyeb) avec le userId en paramètre.
-   * Le site est choisi selon le type de bot : Menma ou OVL.
+   * Le site de session est un service partagé — plus de clonage par utilisateur.
    */
-  async startSessionSite(userId: string, botType: 'menma' | 'ovl' = 'menma'): Promise<string> {
-    const sessionSiteUrl = await SystemSettingsService.getSessionSiteUrl(botType);
+  async startSessionSite(userId: string, botType: 'menma' | 'ovl'): Promise<string> {
+    const menmaUrl = await SystemSettingsService.getSessionSiteUrl(); // On garde celui existant pour Menma
+    // Pour OVL, on peut définir une URL en dur ou utiliser les settings. Par défaut: https://ovl-web.koyeb.app
+    // Pour l'instant, disons qu'on utilise l'URL Koyeb en fonction du botType
+    const baseUrl = botType === 'menma' ? menmaUrl : (process.env.OVL_SESSION_URL || 'https://ovl-web.koyeb.app');
+    
     // On construit l'URL de la page de couplage avec l'identifiant de l'utilisateur
-    const connectionUrl = `${sessionSiteUrl}/pair?userId=${encodeURIComponent(userId)}`;
-    console.log(`[Orchestrator] Session URL (${botType}) for user ${userId}: ${connectionUrl}`);
+    const connectionUrl = `${baseUrl}/pair?userId=${encodeURIComponent(userId)}`;
+    console.log(`[Orchestrator] Session URL (${botType}) generated for user ${userId}: ${connectionUrl}`);
     return connectionUrl;
   }
 
@@ -292,7 +296,6 @@ export class InstanceOrchestrator {
   async stopAll(userId: string) {
     const pm2Prefix = await SystemSettingsService.getPm2Prefix();
     try { await execFileAsync('pm2', ['stop', `${pm2Prefix}${userId}`]); } catch {}
-    try { await execFileAsync('pm2', ['stop', `session-${pm2Prefix}${userId}`]); } catch {}
   }
 
   /**
@@ -303,7 +306,6 @@ export class InstanceOrchestrator {
     
     // 1. Arrêt et suppression PM2
     try { await execFileAsync('pm2', ['delete', `${pm2Prefix}${userId}`]); } catch {}
-    try { await execFileAsync('pm2', ['delete', `session-${pm2Prefix}${userId}`]); } catch {}
 
     // 2. Suppression des fichiers
     const userDir = await this.getUserDir(userId);
