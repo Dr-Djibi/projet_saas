@@ -1,5 +1,6 @@
 import { SystemSetting } from '@/lib/models';
 import path from 'path';
+import os from 'os';
 
 /**
  * Service de gestion des configurations système dynamiques.
@@ -19,7 +20,7 @@ export class SystemSettingsService {
     SAAS_WEBHOOK_SECRET: process.env.SAAS_WEBHOOK_SECRET || 'secret-partage-session',
     PM2_PROCESS_PREFIX: process.env.PM2_PROCESS_PREFIX || 'bot-user-',
     GLOBAL_NODE_MODULES_PATH: process.env.GLOBAL_NODE_MODULES_PATH || '/var/www/global_node_modules/node_modules',
-    USER_INSTANCES_BASE_DIR: process.env.USER_INSTANCES_BASE_DIR || path.join(process.cwd(), 'storage', 'users'),
+    USER_INSTANCES_BASE_DIR: process.env.USER_INSTANCES_BASE_DIR || path.join(os.homedir(), 'menma-users'),
     DEFAULT_REMAINING_HOURS: process.env.DEFAULT_REMAINING_HOURS || '72.00',
   };
 
