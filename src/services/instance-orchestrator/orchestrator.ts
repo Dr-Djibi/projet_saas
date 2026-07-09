@@ -54,25 +54,35 @@ export class InstanceOrchestrator {
   }
 
   /**
-   * Provisionne uniquement l'instance du bot par clonage Git.
+   * Provisionne l'instance du bot en copiant depuis un dossier "template".
    * Le site de session est centralisé sur Koyeb — aucun clonage nécessaire.
    */
   async provisionInstance(userId: string, botType: 'menma' | 'ovl'): Promise<{ botDir: string }> {
+    const baseDir = await this.getBaseDir();
     const userDir = await this.getUserDir(userId);
     const botDir = path.join(userDir, 'bot');
     const logsDir = path.join(userDir, 'logs');
+    const templateDir = path.join(baseDir, 'templates', botType);
 
     if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
 
-    // 1. Cloner uniquement le Bot (Menma ou Ovl)
+    // 1. Mettre à jour (ou cloner) le template global une seule fois
     const botRepoUrl = botType === 'menma' 
       ? await SystemSettingsService.getMenmaRepoUrl() 
       : await SystemSettingsService.getOvlRepoUrl();
     
-    console.log(`[Orchestrator] Provisioning bot (${botType}) for user ${userId}...`);
-    await syncRepository(botRepoUrl, botDir);
+    console.log(`[Orchestrator] Syncing global template for ${botType}...`);
+    await syncRepository(botRepoUrl, templateDir);
 
-    // 2. Liaison node_modules (Bot)
+    // 2. Copier le contenu du template vers le dossier utilisateur (sans le dossier .git)
+    console.log(`[Orchestrator] Provisioning bot (${botType}) for user ${userId} from template...`);
+    fs.cpSync(templateDir, botDir, { 
+      recursive: true, 
+      force: true,
+      filter: (src) => !src.endsWith('.git') && !src.includes(`${path.sep}.git${path.sep}`)
+    });
+
+    // 3. Liaison node_modules (Bot) pour partager les dépendances globalement
     await this.ensureNodeModules(botDir);
 
     return { botDir };
