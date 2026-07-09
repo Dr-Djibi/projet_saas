@@ -370,7 +370,11 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
             disabled={actionLoading}
             className="h-11 sm:h-12 px-4 text-destructive hover:bg-destructive/10 hover:text-destructive font-black rounded-xl cursor-pointer"
           >
-            <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
+            {actionLoading ? (
+              <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+            ) : (
+              <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
+            )}
           </Button>
         </div>
       </div>
@@ -503,8 +507,17 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
                 disabled={actionLoading}
                 className="w-full h-12 font-black border-2 border-destructive text-destructive hover:bg-destructive/5 rounded-xl cursor-pointer gap-2 transition-all"
               >
-                <Power className="h-5 w-5" />
-                {actionLoading ? "Arrêt..." : "Arrêter le bot"}
+                {actionLoading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Arrêt...
+                  </>
+                ) : (
+                  <>
+                    <Power className="h-5 w-5" />
+                    Arrêter le bot
+                  </>
+                )}
               </Button>
             ) : (
               <Button
@@ -512,8 +525,17 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
                 disabled={actionLoading || bot.remainingHours <= 0 || !isPaired}
                 className="w-full h-12 font-black bg-green-600 hover:bg-green-700 text-white rounded-xl border-b-4 border-black/20 active:border-b-0 active:translate-y-[2px] cursor-pointer gap-2 transition-all disabled:opacity-55"
               >
-                <Play className="h-5 w-5" />
-                {actionLoading ? "Démarrage..." : "Démarrer le bot"}
+                {actionLoading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Démarrage...
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-5 w-5" />
+                    Démarrer le bot
+                  </>
+                )}
               </Button>
             )}
 
@@ -524,8 +546,17 @@ export function DashboardBotControl({ initialBot, userId }: DashboardBotControlP
                 variant="outline"
                 className="w-full h-12 font-black border-2 border-primary/10 hover:border-primary/30 rounded-xl cursor-pointer gap-2 transition-all"
               >
-                <RefreshCw className="h-5 w-5" />
-                Associer un autre numéro
+                {sessionLoading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Démarrage...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-5 w-5" />
+                    Associer un autre numéro
+                  </>
+                )}
               </Button>
             )}
           </CardContent>

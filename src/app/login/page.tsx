@@ -7,12 +7,13 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bot } from "lucide-react";
+import { Bot, Eye, EyeOff, Loader2, LogIn } from "lucide-react";
 import { siteConfig } from "@/config/site";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [needsVerification, setNeedsVerification] = useState(false);
@@ -56,6 +57,7 @@ function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Email */}
       <div className="space-y-2">
         <Input
           type="email"
@@ -64,19 +66,33 @@ function LoginForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          disabled={loading}
         />
       </div>
+
+      {/* Password with show/hide toggle */}
       <div className="space-y-2">
-        <Input
-          type="password"
-          placeholder="Mot de passe"
-          className="h-14 px-6 rounded-2xl border-2 border-primary/10 bg-background focus:border-primary focus:ring-0 transition-all font-bold"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+        <div className="relative">
+          <Input
+            type={showPassword ? "text" : "password"}
+            placeholder="Mot de passe"
+            className="h-14 pl-6 pr-14 rounded-2xl border-2 border-primary/10 bg-background focus:border-primary focus:ring-0 transition-all font-bold w-full"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            disabled={loading}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            className="absolute right-5 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-primary transition-colors cursor-pointer focus:outline-none"
+            aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+          >
+            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+        </div>
         <div className="text-right">
-          <Link href="/forgot-password" hidden className="text-sm font-bold text-primary hover:underline underline-offset-4">
+          <Link href="/forgot-password" className="text-sm font-bold text-primary hover:underline underline-offset-4">
             Mot de passe oublié ?
           </Link>
         </div>
@@ -86,7 +102,7 @@ function LoginForm() {
         <div className="p-4 rounded-xl bg-destructive/10 border-2 border-destructive/20 text-destructive text-sm font-bold text-center space-y-3">
           <p>{error}</p>
           {needsVerification && (
-            <Link 
+            <Link
               href={`/signup/verify?email=${encodeURIComponent(email)}`}
               className="block p-2 bg-destructive/10 hover:bg-destructive/20 rounded-lg text-xs transition-colors"
             >
@@ -96,8 +112,22 @@ function LoginForm() {
         </div>
       )}
 
-      <Button type="submit" className="w-full h-14 text-lg font-black bg-primary hover:bg-primary/90 text-white border-b-4 border-black/20 active:border-b-0 active:translate-y-[2px] transition-all cursor-pointer" disabled={loading}>
-        {loading ? "Connexion..." : "Se connecter"}
+      <Button
+        type="submit"
+        className="w-full h-14 text-lg font-black bg-primary hover:bg-primary/90 text-white border-b-4 border-black/20 active:border-b-0 active:translate-y-[2px] transition-all cursor-pointer gap-2"
+        disabled={loading}
+      >
+        {loading ? (
+          <>
+            <Loader2 className="h-5 w-5 animate-spin" />
+            Connexion en cours...
+          </>
+        ) : (
+          <>
+            <LogIn className="h-5 w-5" />
+            Se connecter
+          </>
+        )}
       </Button>
     </form>
   );
@@ -105,7 +135,7 @@ function LoginForm() {
 
 function LoginContent() {
   const searchParams = useSearchParams();
-  
+
   return (
     <Card className="border-2 border-primary/10 shadow-none rounded-[2.5rem] p-4 bg-card/50 backdrop-blur-sm">
       <CardHeader className="pt-8 pb-4 text-center">
@@ -116,14 +146,14 @@ function LoginContent() {
         {searchParams.get("success") && (
           <div className="mb-6 p-4 rounded-xl bg-green-500/10 border-2 border-green-500/20 text-green-600 text-sm font-bold text-center flex items-center justify-center gap-2">
             <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-            {searchParams.get("success") === "Account verified" 
-              ? "Compte vérifié avec succès ! Vous pouvez vous connecter." 
+            {searchParams.get("success") === "Account verified"
+              ? "Compte vérifié avec succès ! Vous pouvez vous connecter."
               : "Inscription réussie ! Veuillez vérifier votre email."}
           </div>
         )}
-        
+
         <LoginForm />
-        
+
         <div className="mt-8 text-center text-sm font-bold text-foreground/60">
           Pas encore de compte ?{" "}
           <Link href="/signup" className="text-primary hover:underline underline-offset-4 decoration-2">

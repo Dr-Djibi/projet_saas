@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 export function RedeemTicketForm({ userId }: { userId: string }) {
   const [loading, setLoading] = useState(false);
@@ -46,7 +47,7 @@ export function RedeemTicketForm({ userId }: { userId: string }) {
             required
           />
           <Button type="submit" disabled={loading} className="h-12 px-6 bg-primary hover:bg-primary/90 text-white font-black border-b-4 border-black/20 active:border-b-0 active:translate-y-[2px] transition-all cursor-pointer">
-            {loading ? "..." : "Valider"}
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Valider"}
           </Button>
         </div>
       </div>
