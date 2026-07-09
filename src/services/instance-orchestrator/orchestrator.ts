@@ -191,22 +191,7 @@ export class InstanceOrchestrator {
     return processName;
   }
 
-  /**
-   * Sauvegarde les identifiants Baileys (creds.json) pour le bot.
-   */
-  async saveBotCredentials(userId: string, creds: unknown) {
-    const userDir = await this.getUserDir(userId);
-    const botDir = path.join(userDir, 'bot');
-    const authDir = path.join(botDir, 'auth');
 
-    if (!fs.existsSync(authDir)) {
-      fs.mkdirSync(authDir, { recursive: true });
-    }
-
-    const credsPath = path.join(authDir, 'creds.json');
-    fs.writeFileSync(credsPath, JSON.stringify(creds, null, 2));
-    console.log(`[Orchestrator] Credentials saved for user ${userId}`);
-  }
 
   /**
    * Arrête l'instance du bot.

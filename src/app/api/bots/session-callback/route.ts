@@ -13,10 +13,10 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { userId, creds } = await req.json();
+    const { userId, sessionId } = await req.json();
 
-    if (!userId || !creds) {
-      return NextResponse.json({ error: 'Données incomplètes (userId ou creds manquants)' }, { status: 400 });
+    if (!userId || !sessionId) {
+      return NextResponse.json({ error: 'Données incomplètes (userId ou sessionId manquants)' }, { status: 400 });
     }
 
     // 2. Récupérer le bot lié à l'utilisateur
@@ -34,11 +34,9 @@ export async function POST(req: Request) {
     await orchestrator.configureBotEnv(userId, {
       BOT_NAME: bot.botName || 'Menma',
       PREFIX: bot.prefix || '.',
-      OWNER_NUMBER: bot.ownerNumber || ''
+      OWNER_NUMBER: bot.ownerNumber || '',
+      SESSION_ID: sessionId // Injecter le Session ID ici
     });
-
-    // 5. Écrire le creds.json dans le répertoire du bot de l'utilisateur
-    await orchestrator.saveBotCredentials(userId, creds);
 
     // 7. Lancer ou redémarrer le bot sur le serveur avec PM2
     await orchestrator.startBot(userId);
