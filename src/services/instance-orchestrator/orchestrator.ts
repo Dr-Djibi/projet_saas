@@ -54,17 +54,17 @@ export class InstanceOrchestrator {
   }
 
   /**
-   * Provisionne l'instance du bot et du site de session par clonage Git.
+   * Provisionne uniquement l'instance du bot par clonage Git.
+   * Le site de session est centralisé sur Koyeb — aucun clonage nécessaire.
    */
-  async provisionInstance(userId: string, botType: 'menma' | 'ovl'): Promise<{ botDir: string; sessionDir: string }> {
+  async provisionInstance(userId: string, botType: 'menma' | 'ovl'): Promise<{ botDir: string }> {
     const userDir = await this.getUserDir(userId);
     const botDir = path.join(userDir, 'bot');
-    const sessionDir = path.join(userDir, 'session');
     const logsDir = path.join(userDir, 'logs');
 
     if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
 
-    // 1. Cloner le Bot (Menma ou Ovl)
+    // 1. Cloner uniquement le Bot (Menma ou Ovl)
     const botRepoUrl = botType === 'menma' 
       ? await SystemSettingsService.getMenmaRepoUrl() 
       : await SystemSettingsService.getOvlRepoUrl();
@@ -72,18 +72,10 @@ export class InstanceOrchestrator {
     console.log(`[Orchestrator] Provisioning bot (${botType}) for user ${userId}...`);
     await syncRepository(botRepoUrl, botDir);
 
-    // 2. Cloner le Site de Session
-    const sessionRepoUrl = await SystemSettingsService.getSessionRepoUrl();
-    console.log(`[Orchestrator] Provisioning session site for user ${userId}...`);
-    await syncRepository(sessionRepoUrl, sessionDir);
-
-    // 3. Liaison node_modules (Bot)
+    // 2. Liaison node_modules (Bot)
     await this.ensureNodeModules(botDir);
-    
-    // 4. Liaison node_modules (Session)
-    await this.ensureNodeModules(sessionDir);
 
-    return { botDir, sessionDir };
+    return { botDir };
   }
 
   /**
@@ -283,50 +275,15 @@ export class InstanceOrchestrator {
   }
 
   /**
-   * Démarre l'instance de session via PM2 avec un port spécifique.
+   * Construit l'URL du site de session centralisé (Koyeb) avec le userId en paramètre.
+   * Le site de session est un service partagé — plus de clonage par utilisateur.
    */
-  async startSessionSite(userId: string): Promise<number> {
-    const userDir = await this.getUserDir(userId);
-    const sessionDir = path.join(userDir, 'session');
-    const logsDir = path.join(userDir, 'logs');
-    if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
-    
-    const pm2Prefix = await SystemSettingsService.getPm2Prefix();
-    const processName = `session-${pm2Prefix}${userId}`;
-    const outLog = path.join(logsDir, 'session-out.log');
-    const errLog = path.join(logsDir, 'session-err.log');
-    
-    // Utiliser un port dérivé du port du bot ou en trouver un nouveau
-    // Pour simplifier, on peut utiliser port_bot + 1000 si disponible, ou findAvailablePort
-    const bot = await WhatsappBot.findOne({ where: { userId } });
-    if (!bot) throw new Error("Bot not found");
-    
-    // Le site de session peut utiliser un port aléatoire ou fixe. 
-    // S'il est utilisé uniquement pour le scan QR, on peut le libérer après.
-    // Mais ici on le garde simple.
-    const port = await this.findAvailablePort(); // On pourrait aussi avoir un champ 'session_port' en DB
-    
-    // Injecter le port dans le .env du site de session
-    await EnvService.writeEnv(path.join(sessionDir, '.env'), { 
-      PORT: port.toString(), 
-      USER_ID: userId,
-      // On peut ajouter d'autres variables si nécessaire
-    });
-
-    try {
-      await execFileAsync('pm2', ['describe', processName]);
-      await execFileAsync('pm2', ['restart', processName]);
-    } catch {
-      await execFileAsync('pm2', [
-        'start', 'index.js', 
-        '--name', processName,
-        '--output', outLog,
-        '--error', errLog,
-        '--interpreter', 'node'
-      ], { cwd: sessionDir });
-    }
-
-    return port;
+  async startSessionSite(userId: string): Promise<string> {
+    const sessionSiteUrl = await SystemSettingsService.getSessionSiteUrl();
+    // On construit l'URL de la page de couplage avec l'identifiant de l'utilisateur
+    const connectionUrl = `${sessionSiteUrl}/pair?userId=${encodeURIComponent(userId)}`;
+    console.log(`[Orchestrator] Session URL generated for user ${userId}: ${connectionUrl}`);
+    return connectionUrl;
   }
 
   /**

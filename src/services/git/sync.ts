@@ -2,6 +2,10 @@ import simpleGit, { SimpleGit } from 'simple-git';
 import fs from 'fs';
 import path from 'path';
 
+// Désactive les prompts d'auth Git — indispensable pour les repos publics
+// sans credential helper configuré (évite le freeze en attente de stdin).
+process.env.GIT_TERMINAL_PROMPT = '0';
+
 export const syncRepository = async (repoUrl: string, targetPath: string, branch: string = 'main') => {
   const git: SimpleGit = simpleGit();
 
@@ -23,7 +27,7 @@ export const syncRepository = async (repoUrl: string, targetPath: string, branch
         const repo = simpleGit(targetPath);
         await repo.pull('origin', branch);
       } else {
-        // Le dossier existe mais n'est pas un repo git
+        // Le dossier existe mais n'est pas un repo git → re-cloner
         console.warn(`Target path ${targetPath} exists but is not a git repository. Re-cloning...`);
         fs.rmSync(targetPath, { recursive: true, force: true });
         fs.mkdirSync(targetPath, { recursive: true });
@@ -32,8 +36,8 @@ export const syncRepository = async (repoUrl: string, targetPath: string, branch
     }
     return { success: true };
   } catch (error) {
-    console.error("Git sync error:", error);
-    return { success: false, error: (error as Error).message };
+    console.error('Git sync error:', error);
+    throw error; // On propage pour que l'appelant gère l'erreur
   }
 };
 
