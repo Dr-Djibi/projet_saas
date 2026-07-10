@@ -1,25 +1,14 @@
-# Build Stage
-FROM node:20-alpine AS builder
+FROM node:22-alpine
+
 WORKDIR /app
+
 COPY package*.json ./
 RUN npm install
+
 COPY . .
-RUN npx prisma generate
+
 RUN npm run build
 
-# Production Stage
-FROM node:20-alpine AS runner
-WORKDIR /app
-ENV NODE_ENV=production
-
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/prisma ./prisma
-
-# Script de démarrage qui applique les migrations avant de lancer l'app
-RUN echo -e '#!/bin/sh\nnpx prisma migrate deploy\nnpm start' > start.sh && chmod +x start.sh
-
 EXPOSE 3000
-CMD ["./start.sh"]
+
+CMD ["npm", "start"]
